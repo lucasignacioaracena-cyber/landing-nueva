@@ -1,0 +1,128 @@
+.hero-buttons {
+  flex-wrap: wrap;
+}
+
+.hero-video-link {
+  gap: 8px;
+}
+
+.inline-play {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 27px;
+  height: 27px;
+  flex-shrink: 0;
+  border: 1px solid #ddbac9;
+  border-radius: 50%;
+  color: var(--pink);
+  transition:
+    background 0.2s,
+    transform 0.2s;
+}
+
+.inline-play > svg {
+  margin-left: 2px;
+}
+
+.hero-video-link:hover .inline-play {
+  background: #f5e3eb;
+  transform: scale(1.08);
+}
+
+.profile-signature {
+  display: grid;
+  grid-template-columns: 46px 1fr 19px 16px;
+  align-items: center;
+  gap: 12px;
+  width: min(100%, 360px);
+  padding-block: 17px;
+  margin-top: 16px;
+  border-block: 1px solid #e4c8d3;
+  color: #955570;
+}
+
+.profile-avatar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 46px;
+  height: 46px;
+  border: 1px solid #dec0cd;
+  border-radius: 50%;
+  background: #fffaf8;
+}
+
+.profile-name {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.profile-name strong {
+  font-family: var(--serif);
+  font-size: 20px;
+  font-weight: 400;
+  color: var(--ink);
+}
+
+.profile-name > span {
+  font-size: 10px;
+  color: #805568;
+}
+
+.profile-signature:hover .profile-avatar {
+  background: #f6e1e9;
+}
+
+@media (min-width: 901px) and (max-width: 1050px) {
+  .nav {
+    gap: 16px;
+  }
+
+  .nav a {
+    font-size: 10px;
+  }
+}
+
+@media (min-width: 681px) and (max-width: 900px) {
+  .nav {
+    position: absolute;
+    top: 78px;
+    left: 0;
+    right: 0;
+    display: none;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0;
+    padding: 12px 26px 23px;
+    border-top: 1px solid var(--line);
+    background: #fffaf8;
+    box-shadow: 0 12px 20px #49333b0e;
+  }
+
+  .nav.nav-open {
+    display: flex;
+  }
+
+  .nav a {
+    padding-block: 14px;
+    font-size: 13px;
+  }
+
+  .menu-toggle {
+    display: inline-flex;
+  }
+
+  .header-actions .button {
+    font-size: 12px;
+    padding-inline: 16px;
+    min-height: 42px;
+  }
+}
+
+@media (max-width: 370px) {
+  .hero-video-link > svg {
+    display: none;
+  }
+}

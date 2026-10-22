@@ -1,0 +1,229 @@
+/* Native scrolling stays in control. Motion progressively enhances the page. */
+.scroll-progress {
+  position: absolute;
+  inset: auto 0 0;
+  height: 2px;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.scroll-progress > span {
+  display: block;
+  height: 100%;
+  background: var(--pink);
+  transform: scaleX(var(--scroll-progress, 0));
+  transform-origin: left;
+}
+
+.nav a[aria-current="location"] {
+  color: var(--pink);
+}
+
+.nav a[aria-current="location"]::after {
+  right: 0;
+}
+
+.scroll-invitation {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 27px;
+  color: #805568;
+  font-size: 10px;
+  letter-spacing: 0.3px;
+}
+
+.scroll-invitation-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 27px;
+  height: 34px;
+  border: 1px solid #d6b0bf;
+  border-radius: 20px;
+}
+
+.scroll-invitation-line {
+  height: 1px;
+  width: 40px;
+  margin-left: 2px;
+  background: #d8b6c3;
+  transform-origin: left;
+  transition: transform 0.25s ease;
+}
+
+.scroll-invitation:hover .scroll-invitation-line {
+  transform: scaleX(1.4);
+}
+
+#inicio:focus {
+  outline: none;
+}
+
+.motion-enabled .hero-photo {
+  transform: translate3d(0, var(--hero-shift, 0px), 0) scale(1.12);
+}
+
+.motion-enabled .photo-sticker {
+  transform: translate3d(0, var(--sticker-shift, 0px), 0) rotate(-5deg);
+}
+
+.motion-enabled .visual-flower {
+  transform: rotate(calc(8deg + var(--hero-turn, 0deg)));
+}
+
+.motion-enabled .large-flower {
+  transform: rotate(var(--flower-turn, -14deg));
+}
+
+.motion-enabled .scroll-reveal {
+  opacity: 0;
+  translate: 0 24px;
+  transition:
+    opacity 0.65s ease,
+    translate 0.65s cubic-bezier(0.2, 0.6, 0.2, 1),
+    transform 0.2s ease,
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
+  transition-delay:
+    var(--reveal-delay, 0ms), var(--reveal-delay, 0ms), 0s, 0s, 0s;
+}
+
+.motion-enabled .scroll-reveal.is-revealed,
+.motion-enabled .scroll-reveal:focus-within {
+  opacity: 1;
+  translate: 0 0;
+}
+
+.step::after {
+  content: "";
+  position: absolute;
+  inset: auto 0 -1px;
+  height: 2px;
+  border-radius: 2px;
+  background: var(--pink);
+  transform: scaleX(
+    clamp(0, calc(var(--journey-progress, 0) * 3 - var(--step-index, 0)), 1)
+  );
+  transform-origin: left;
+}
+
+.back-to-top {
+  position: fixed;
+  right: 28px;
+  bottom: 91px;
+  z-index: 24;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border: 1px solid #e6ccd7;
+  border-radius: 50%;
+  color: var(--pink);
+  background: #fffaf8f2;
+  backdrop-filter: blur(10px);
+  box-shadow: 0 3px 16px #49333b09;
+  animation: fade-in 0.25s ease;
+  transition:
+    background 0.2s,
+    transform 0.2s;
+}
+
+.back-to-top:hover {
+  background: #f7e4eb;
+  transform: translateY(-3px);
+}
+
+.mobile-booking-bar {
+  display: none;
+}
+
+@media (max-width: 900px) {
+  .scroll-invitation {
+    margin-top: 21px;
+    font-size: 9px;
+  }
+}
+
+@media (max-width: 680px) {
+  .scroll-invitation {
+    margin-top: 25px;
+    font-size: 10px;
+  }
+
+  .back-to-top {
+    right: 19px;
+    bottom: calc(80px + env(safe-area-inset-bottom, 0px));
+    width: 37px;
+    height: 37px;
+  }
+
+  .whatsapp-float {
+    bottom: calc(15px + env(safe-area-inset-bottom, 0px));
+  }
+
+  .mobile-booking-bar {
+    position: fixed;
+    left: 16px;
+    right: 78px;
+    bottom: calc(15px + env(safe-area-inset-bottom, 0px));
+    z-index: 24;
+    display: flex;
+    justify-content: flex-start;
+    gap: 8px;
+    min-height: 47px;
+    padding: 11px 13px;
+    font-size: 10px;
+    border-radius: 9px;
+    box-shadow: 0 4px 20px #7b35532e;
+    animation: slide-in 0.25s ease;
+  }
+
+  .mobile-booking-bar > span {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    margin-left: auto;
+    font-weight: 600;
+  }
+
+  .mobile-booking-bar > svg {
+    flex-shrink: 0;
+  }
+
+  .footer-bottom {
+    padding-bottom: calc(100px + env(safe-area-inset-bottom, 0px));
+  }
+}
+
+@media (max-width: 370px) {
+  .mobile-booking-bar {
+    font-size: 9px;
+    gap: 6px;
+    padding-inline: 10px;
+  }
+
+  .mobile-booking-bar > svg {
+    width: 15px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .scroll-reveal {
+    opacity: 1 !important;
+    translate: none !important;
+  }
+
+  .hero-photo,
+  .photo-sticker,
+  .visual-flower,
+  .large-flower {
+    transition: none;
+  }
+
+  .step::after {
+    transform: scaleX(1);
+  }
+}
