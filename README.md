@@ -16,7 +16,7 @@ npm run build
 npm run preview -- --port 4173
 ```
 
-Para crear un archivo HTML independiente, con fuentes, imágenes, videos, subtítulos y JavaScript incluidos:
+Para crear un archivo HTML independiente, con fuentes, imágenes, videos y JavaScript incluidos:
 
 ```sh
 npm run export:html
@@ -39,18 +39,25 @@ Las fechas se habilitan según el día actual en Chile continental. Las franjas 
 
 No requiere claves, servicios externos ni base de datos para ejecutarse. Las fuentes y la imagen se sirven localmente.
 
-## Videos de presentación
+## Portada con video vinculado al scroll
 
-La sección `#presentacion` reproduce los dos MP4 locales de `public/videos/`, con selector horizontal/vertical, controles nativos, botones de reproducción y sonido y acceso directo al formulario de citas. Los videos se cargan al reproducirlos y se pausan al salir de pantalla, cambiar de formato, ocultar la pestaña o abrir la agenda. No hay reproducción automática.
+La portada `#inicio` permanece fija durante cuatro capítulos. El desplazamiento nativo controla la posición del video: al bajar avanza y al subir retrocede. Los botones de capítulo también permiten recorrerla y admiten las teclas de dirección, Inicio y Fin. El acceso a servicios permite saltar la portada; el botón para agendar permanece visible.
 
-Incluye una transcripción desplegable y subtítulos en español (`presentacion-es.vtt`). La música es instrumental original y los videos no contienen voz en off. Sus fotografías son ilustrativas.
+`src/ScrollFilm.jsx` calcula el progreso y actualiza `video.currentTime`, con un único seek en curso que siempre converge al último desplazamiento. No reproduce el video automáticamente ni utiliza sonido. Se selecciona un solo MP4 según el ancho de pantalla:
 
-La foto de perfil real de `@matronaguia` sigue pendiente: Instagram y TikTok no son accesibles desde la red de este entorno. El símbolo floral del perfil es la marca gráfica; no se ha usado una fotografía de otra persona para representar a la profesional.
+- `public/videos/scroll-film-desktop.mp4`: 1600 × 1000, 12 segundos.
+- `public/videos/scroll-film-mobile.mp4`: 900 × 1200, 12 segundos.
 
-## Scroll interactivo
+Ambos clips son H.264, 24 fps, sin audio y preparados para búsquedas frecuentes (fotogramas clave cada 0,5 segundos, sin B-frames y con faststart). Muestran una composición animada de la fotografía ilustrativa; no son una grabación de la profesional. Sus posters están en `public/images/scroll-poster-*.jpg`.
 
-La página incorpora una barra de avance de lectura, navegación que indica la sección actual, aparición progresiva de contenido, parallax suave en la portada y un indicador de avance en los pasos de la cita. En celulares, el acceso para agendar aparece al terminar la portada. El botón para volver al inicio devuelve también el foco al contenido.
+Con `prefers-reduced-motion`, la portada se muestra estática, no descarga el MP4 y los botones cambian los mensajes sin desplazar la página. Si falla la carga del video, conserva la imagen y los botones en una portada estática. Se conservan los videos de presentación horizontal y vertical anteriores en `public/videos/`, aunque el rediseño utiliza los nuevos clips para el scroll.
 
-Se conserva el desplazamiento nativo del navegador. Los efectos respetan `prefers-reduced-motion`, no requieren nuevas dependencias y usan `requestAnimationFrame` e `IntersectionObserver`.
+## Diseño e interacciones
 
-La referencia solicitada es https://matronaguia.base44.app. Su contenido todavía no se ha incorporado: el acceso a ese dominio está bloqueado por la red del entorno. Habilitarlo antes de atribuir a esa fuente servicios, valores, credenciales, dirección u otros datos.
+El diseño editorial combina blanco cálido, rosado, tipografía serif y una agenda accesible por teclado. El selector de servicios actualiza su descripción y abre la solicitud de cita con el motivo elegido. Incluye preguntas desplegables, navegación móvil, barra de progreso, aparición de secciones y acceso para agendar al terminar la portada. El botón para volver al inicio también devuelve el foco al contenido.
+
+Los efectos respetan la preferencia de movimiento reducido. La implementación utiliza `requestAnimationFrame`, `IntersectionObserver` y `ResizeObserver`, sin una biblioteca de animación adicional.
+
+La foto de perfil real de `@matronaguia` sigue pendiente: Instagram y TikTok no son accesibles desde la red de este entorno. El símbolo floral es la marca gráfica; no representa a la profesional.
+
+La referencia solicitada es https://matronaguia.base44.app. Su contenido no se ha incorporado porque el acceso a ese dominio está bloqueado por la red del entorno. No se han atribuido a esa fuente valores, credenciales, dirección u otros datos sin verificar.

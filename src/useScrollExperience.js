@@ -19,7 +19,6 @@ export default function useScrollExperience() {
     const presentation = document.getElementById("presentacion");
     const sections = [
       "inicio",
-      "presentacion",
       "servicios",
       "enfoque",
       "como-agendar",
@@ -44,6 +43,11 @@ export default function useScrollExperience() {
       ".video-intro",
       ".video-stage",
       ".video-aside",
+      ".care-menu",
+      ".care-panel",
+      ".human-statement",
+      ".human-copy",
+      ".editorial-social",
     ].join(",");
     let frame = 0;
     let current = { activeSection: "inicio", pastHero: false, scrolled: false };

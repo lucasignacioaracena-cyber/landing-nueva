@@ -50,8 +50,13 @@ for (const match of [
     "videos/presentacion-horizontal.mp4",
     "videos/presentacion-vertical.mp4",
     "videos/presentacion-es.vtt",
+    "images/scroll-poster-desktop.jpg",
+    "images/scroll-poster-mobile.jpg",
+    "videos/scroll-film-desktop.mp4",
+    "videos/scroll-film-mobile.mp4",
   ];
   for (const asset of bundledAssets) {
+    if (!javascript.includes(`/${asset}`)) continue;
     javascript = javascript.replaceAll(
       `/${asset}`,
       await dataUrl(resolve(dist, asset)),

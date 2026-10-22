@@ -33,9 +33,9 @@ import "@fontsource/dm-serif-display/latin-400.css";
 import "@fontsource/dm-serif-display/latin-400-italic.css";
 import "./styles.css";
 import "./scroll.css";
-import "./integration.css";
+import "./redesign.css";
 import useScrollExperience from "./useScrollExperience";
-import VideoExperience from "./VideoExperience";
+import ScrollFilm from "./ScrollFilm";
 
 const PHONE = "56975898382";
 const whatsapp = (
@@ -167,38 +167,41 @@ function App() {
   const [mobileMenu, setMobileMenu] = useState(false);
   const [booking, setBooking] = useState(null);
   const [detail, setDetail] = useState(null);
-  const [filter, setFilter] = useState("Todos");
+  const [activeCare, setActiveCare] = useState(services[0].id);
   const [openFaq, setOpenFaq] = useState(0);
-  useEffect(() => {
-    if (booking || detail) {
-      document.querySelectorAll("video").forEach((video) => video.pause());
-    }
-  }, [booking, detail]);
+  const selectedCare = services.find((service) => service.id === activeCare);
+  const SelectedIcon = selectedCare.Icon;
   const openBooking = (service = "") => {
     setDetail(null);
     setMobileMenu(false);
     setBooking({ service });
   };
+
+  useEffect(() => {
+    if (booking || detail)
+      document.querySelectorAll("video").forEach((video) => video.pause());
+  }, [booking, detail]);
+
   const faqs = [
     [
       "¿Cómo puedo agendar una cita?",
-      "Haz clic en “Agendar mi cita”, elige el motivo de consulta y tu fecha y horario preferidos. Al finalizar se abrirá WhatsApp con tu solicitud preparada. Envía el mensaje para coordinar y confirmar tu atención.",
+      "Elige el motivo de consulta y tu fecha y horario preferidos en el formulario. Se abrirá WhatsApp con tu solicitud preparada. Envía el mensaje para coordinar y confirmar la atención personalmente.",
     ],
     [
       "¿La atención es presencial u online?",
-      "Puedes consultar la modalidad y el lugar de atención disponibles directamente por WhatsApp. Estos detalles se coordinan antes de confirmar tu cita.",
+      "La modalidad y el lugar de atención disponibles se consultan por WhatsApp antes de confirmar tu cita.",
     ],
     [
-      "¿Necesito tener una duda específica para consultar?",
-      "Puedes solicitar orientación aunque todavía no sepas cómo explicar lo que te pasa. Cuéntame en términos generales qué necesitas y coordinaremos el siguiente paso.",
+      "¿Necesito tener una duda específica?",
+      "No necesitas tener todas las respuestas ni saber cómo explicar lo que te pasa. Puedes empezar contando qué necesitas y coordinaremos el siguiente paso.",
     ],
     [
-      "¿Dónde puedo consultar el valor de la atención?",
-      "Los valores y los medios de pago se consultan por WhatsApp antes de confirmar. Así puedes conocer los detalles de la atención y decidir con tranquilidad.",
+      "¿Cómo conozco el valor de la consulta?",
+      "Consulta los valores y los medios de pago por WhatsApp antes de confirmar, para decidir con toda la información.",
     ],
     [
-      "¿Puedo cambiar o cancelar mi cita?",
-      "Sí, escribe al mismo WhatsApp con el que coordinaste tu atención para solicitar un cambio o una cancelación. Avísanos con anticipación para revisar las alternativas disponibles.",
+      "¿Puedo cambiar una cita ya coordinada?",
+      "Escribe al mismo WhatsApp para solicitar un cambio o una cancelación. Avísanos con anticipación para revisar las alternativas disponibles.",
     ],
   ];
 
@@ -207,56 +210,34 @@ function App() {
       <a className="skip-link" href="#contenido">
         Saltar al contenido
       </a>
-      <header className="header">
+      <header className="header editorial-header">
         <div className="container header-inner">
           <Brand />
           <nav
             className={`nav ${mobileMenu ? "nav-open" : ""}`}
             aria-label="Navegación principal"
           >
-            <a
-              href="#presentacion"
-              aria-current={
-                activeSection === "presentacion" ? "location" : undefined
-              }
-              onClick={() => setMobileMenu(false)}
-            >
-              Presentación
-            </a>
-            <a
-              href="#servicios"
-              aria-current={
-                activeSection === "servicios" ? "location" : undefined
-              }
-              onClick={() => setMobileMenu(false)}
-            >
-              Cómo te acompaño
-            </a>
-            <a
-              href="#enfoque"
-              aria-current={
-                activeSection === "enfoque" ? "location" : undefined
-              }
-              onClick={() => setMobileMenu(false)}
-            >
-              Mi enfoque
-            </a>
-            <a
-              href="#preguntas"
-              aria-current={
-                activeSection === "preguntas" ? "location" : undefined
-              }
-              onClick={() => setMobileMenu(false)}
-            >
-              Preguntas frecuentes
-            </a>
+            {[
+              ["servicios", "Cómo te acompaño"],
+              ["enfoque", "Mi enfoque"],
+              ["preguntas", "Preguntas frecuentes"],
+            ].map(([id, label]) => (
+              <a
+                key={id}
+                href={`#${id}`}
+                aria-current={activeSection === id ? "location" : undefined}
+                onClick={() => setMobileMenu(false)}
+              >
+                {label}
+              </a>
+            ))}
           </nav>
           <div className="header-actions">
             <button
               className="button button-small"
               onClick={() => openBooking()}
             >
-              <CalendarDays size={17} /> Agendar una cita{" "}
+              <CalendarDays size={16} /> Agendar una cita{" "}
               <ArrowUpRight size={16} />
             </button>
             <button
@@ -265,7 +246,7 @@ function App() {
               aria-expanded={mobileMenu}
               onClick={() => setMobileMenu(!mobileMenu)}
             >
-              {mobileMenu ? <X /> : <Menu />}
+              {mobileMenu ? <X size={22} /> : <Menu size={22} />}
             </button>
           </div>
         </div>
@@ -274,345 +255,245 @@ function App() {
         </div>
       </header>
 
-      <main id="contenido">
-        <section id="inicio" className="hero container" tabIndex={-1}>
-          <div className="hero-copy">
-            <span className="eyebrow hero-eyebrow">
-              <Burst className="tiny-flower" /> UN ESPACIO SEGURO PARA TI
-            </span>
-            <h1>
-              Tu bienestar
-              <br />
-              merece una
-              <br />
-              <em>guía cercana.</em>
-              <Burst className="heading-star" />
-            </h1>
-            <p className="hero-description">
-              Acompañamiento en salud femenina, con la calidez que necesitas y
-              la información que mereces. Aquí, tus preguntas siempre tienen un
-              lugar.
-            </p>
-            <div className="hero-buttons">
-              <button className="button" onClick={() => openBooking()}>
-                Agendar mi cita <ArrowUpRight size={19} />
-              </button>
-              <a className="text-link hero-video-link" href="#presentacion">
-                <span className="inline-play">
-                  <Play size={13} fill="currentColor" />
-                </span>
-                Ver presentación <ArrowRight size={17} />
-              </a>
-            </div>
-            <div className="hero-promises">
-              <span>
-                <ShieldCheck size={17} /> Un espacio de confianza
-              </span>
-              <span className="promise-dot" aria-hidden="true" />
-              <span>
-                <Heart size={16} /> Cuidado sin juicios
-              </span>
-            </div>
-            <a className="scroll-invitation" href="#presentacion">
-              <span className="scroll-invitation-icon">
-                <ArrowDown size={15} />
-              </span>{" "}
-              Descubre tu espacio{" "}
-              <span className="scroll-invitation-line" aria-hidden="true" />
-            </a>
-          </div>
-          <div className="hero-visual">
-            <div className="photo-outline" aria-hidden="true" />
-            <div className="hero-photo-wrap">
-              <img
-                src="/images/maternity.webp"
-                width="880"
-                height="1100"
-                alt="Imagen ilustrativa de una mujer embarazada sosteniendo su vientre en un ambiente tranquilo"
-                className="hero-photo"
-                fetchPriority="high"
-              />
-            </div>
-            <div className="photo-sticker">
-              <Flower2 size={29} strokeWidth={1.1} />
-              <span>
-                Contigo, en
-                <br />
-                <strong>cada etapa.</strong>
-              </span>
-            </div>
-            <Burst className="visual-flower" />
-            <div className="image-caption">
-              <span /> ESCUCHAR · ACOMPAÑAR · CUIDAR
-            </div>
-          </div>
-        </section>
+      <main id="contenido" className="editorial-main">
+        <ScrollFilm onBook={() => openBooking()} />
 
-        <div className="values-strip">
-          <div className="container values-inner">
-            <span>Tu cuerpo, tus decisiones.</span>
-            <Flower2 size={22} strokeWidth={1.3} />
-            <span>Información que da tranquilidad.</span>
-            <Flower2 size={22} strokeWidth={1.3} />
-            <span>Un cuidado tan único como tú.</span>
+        <div className="editorial-manifesto">
+          <div className="container manifesto-inner">
+            <Flower2 size={25} strokeWidth={1.2} />
+            <p>
+              Tu cuerpo. Tus decisiones. <em>Tu forma de cuidarte.</em>
+            </p>
+            <span>SALUD CON RESPETO Y CERCANÍA</span>
           </div>
         </div>
 
-        <VideoExperience onBook={() => openBooking()} />
-
-        <section id="servicios" className="section services-section container">
-          <div className="section-heading">
+        <section id="servicios" className="care-section container">
+          <div className="care-heading section-heading">
             <div>
-              <span className="eyebrow">CUIDADO QUE CRECE CONTIGO</span>
+              <span className="eyebrow">ACOMPAÑAMIENTO A TU MEDIDA</span>
               <h2>
-                Cada etapa, <em>su guía.</em>
+                Cada etapa tiene
+                <br />
+                <em>su propia historia.</em>
               </h2>
             </div>
             <p>
-              Porque no hay una sola forma de vivir tu salud.
-              <br className="desktop-break" /> Encontremos juntas el
-              acompañamiento para ti.
+              Tu salud cambia contigo. Encuentra un espacio
+              <br className="desktop-break" /> para conversar, entender y
+              decidir con confianza.
             </p>
           </div>
-          <div
-            className="service-filters"
-            role="group"
-            aria-label="Filtrar servicios"
-          >
-            {["Todos", "Bienestar íntimo", "Maternidad"].map((item) => (
-              <button
-                key={item}
-                className={filter === item ? "filter active" : "filter"}
-                aria-pressed={filter === item}
-                onClick={() => setFilter(item)}
-              >
-                {item}
-              </button>
-            ))}
-          </div>
-          <div className="service-grid">
-            {services
-              .filter((s) => filter === "Todos" || s.category === filter)
-              .map(({ Icon, ...service }) => (
+          <div className="care-layout">
+            <div
+              className="care-menu"
+              role="group"
+              aria-label="Elegir área de acompañamiento"
+            >
+              {services.map((service, index) => (
                 <button
-                  className={`service-card ${service.color}`}
                   key={service.id}
-                  onClick={() => setDetail({ Icon, ...service })}
+                  aria-pressed={activeCare === service.id}
+                  aria-controls="care-panel"
+                  onClick={() => setActiveCare(service.id)}
                 >
-                  <span className="service-icon">
-                    <Icon size={28} strokeWidth={1.4} />
-                  </span>
-                  <span className="service-title">{service.title}</span>
-                  <span className="service-description">
-                    {service.description}
-                  </span>
-                  <span className="service-link">
-                    Conocer más <ArrowUpRight size={18} />
-                  </span>
+                  <span className="care-number">0{index + 1}</span>
+                  <span>{service.title}</span>
+                  <ArrowUpRight size={20} strokeWidth={1.4} />
                 </button>
               ))}
-          </div>
-          <p className="service-help">
-            <MessageCircle size={17} /> ¿No sabes qué consulta necesitas?{" "}
-            <a
-              href={whatsapp(
-                "¡Hola, Matrona Guía! Me gustaría orientación para saber qué consulta necesito.",
-              )}
-              target="_blank"
-              rel="noopener noreferrer"
+            </div>
+            <div
+              className={`care-panel ${selectedCare.color}`}
+              id="care-panel"
+              role="region"
+              aria-label={selectedCare.title}
+              key={selectedCare.id}
             >
-              Conversemos por WhatsApp <ArrowUpRight size={14} />
-            </a>
-          </p>
-        </section>
-
-        <section id="enfoque" className="approach-section">
-          <div className="container approach-grid">
-            <div className="approach-art">
-              <div className="art-circle">
-                <Flower2 strokeWidth={0.65} className="large-flower" />
-                <span className="art-spark art-spark-one">✦</span>
-                <span className="art-spark art-spark-two">✦</span>
-                <span className="art-caption">SALUD CON CALIDEZ</span>
+              <div className="care-panel-top">
+                <span className="care-panel-icon">
+                  <SelectedIcon size={31} strokeWidth={1.2} />
+                </span>
+                <span className="eyebrow">UN ESPACIO PARA TU BIENESTAR</span>
               </div>
-              <div className="art-note">
-                <Heart size={17} /> Aquí puedes ser tú.
+              <h3>{selectedCare.title}</h3>
+              <p>{selectedCare.description}</p>
+              <ul>
+                {selectedCare.points.map((point) => (
+                  <li key={point}>
+                    <Check size={17} />
+                    {point}
+                  </li>
+                ))}
+              </ul>
+              <div className="care-panel-actions">
+                <button
+                  className="button"
+                  onClick={() => openBooking(selectedCare.id)}
+                >
+                  Consultar por esta atención <ArrowUpRight size={18} />
+                </button>
+                <button
+                  className="quiet-button text-link"
+                  onClick={() => setDetail(selectedCare)}
+                >
+                  Conocer más <ArrowRight size={16} />
+                </button>
               </div>
             </div>
-            <div className="approach-copy">
-              <span className="eyebrow">
-                MÁS QUE UNA CONSULTA, UN ENCUENTRO
-              </span>
-              <h2>
-                Escucharte es el
+          </div>
+          <a
+            className="care-question"
+            href={whatsapp(
+              "¡Hola, Matrona Guía! Me gustaría orientación para saber qué consulta necesito.",
+            )}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <MessageCircle size={19} />
+            <span>
+              ¿No sabes por dónde empezar? <strong>Conversemos.</strong>
+            </span>
+            <ArrowUpRight size={16} />
+          </a>
+        </section>
+
+        <section id="enfoque" className="human-section">
+          <div className="container human-layout">
+            <div className="human-statement approach-art">
+              <span className="eyebrow">AQUÍ PUEDES SER TÚ</span>
+              <p>
+                “Tus preguntas
                 <br />
-                primer paso para <em>cuidarte.</em>
+                siempre tienen
+                <br />
+                <em>un lugar.”</em>
+              </p>
+              <Flower2
+                className="human-flower large-flower"
+                strokeWidth={0.65}
+                aria-hidden="true"
+              />
+            </div>
+            <div className="human-copy approach-copy">
+              <span className="eyebrow">MÁS QUE UNA CONSULTA</span>
+              <h2>
+                Acompañarte empieza
+                <br />
+                por <em>escucharte.</em>
               </h2>
               <p>
-                A veces necesitas una respuesta. Otras, un espacio donde poder
+                A veces necesitas una respuesta. Otras, un espacio donde
                 preguntar sin vergüenza. Matrona Guía nace de esa idea:
-                acompañarte con cercanía, respeto e información clara.
+                acompañarte con respeto, cercanía e información clara.
               </p>
               <p>
-                Tu historia importa. Tu ritmo también. Construyamos juntas una
-                forma de cuidar tu salud que se sienta tuya.
+                Tu historia importa. Tu ritmo también. El cuidado se construye
+                contigo, escuchando lo que necesitas en cada momento.
               </p>
+              <div className="human-values">
+                <span>
+                  <Heart size={20} strokeWidth={1.3} /> Escucha sin juicios
+                </span>
+                <span>
+                  <ShieldCheck size={20} strokeWidth={1.3} /> Información para
+                  decidir
+                </span>
+                <span>
+                  <Sprout size={20} strokeWidth={1.3} /> Respeto por tu proceso
+                </span>
+              </div>
               <a
-                className="profile-signature"
+                className="human-profile"
                 href="https://www.instagram.com/matronaguia/"
                 target="_blank"
                 rel="noopener noreferrer"
-                aria-label="Ver el perfil de Matrona Guía en Instagram"
               >
-                <span className="profile-avatar" aria-hidden="true">
-                  <Flower2 size={27} strokeWidth={1.25} />
+                <span className="human-avatar">
+                  <Flower2 size={27} strokeWidth={1.2} />
                 </span>
-                <span className="profile-name">
+                <span>
                   <strong>Matrona Guía</strong>
-                  <span>@matronaguia</span>
+                  <small>@matronaguia</small>
                 </span>
-                <Instagram size={19} strokeWidth={1.5} />
-                <ArrowUpRight size={16} />
-              </a>
-              <div className="approach-principles">
-                <span>
-                  <Check size={16} /> Escucha con empatía
-                </span>
-                <span>
-                  <Check size={16} /> Decisiones informadas
-                </span>
-                <span>
-                  <Check size={16} /> Respeto por tu proceso
-                </span>
-              </div>
-              <a
-                className="text-link"
-                href={whatsapp()}
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                Me gustaría conversar <ArrowUpRight size={18} />
+                <Instagram size={20} strokeWidth={1.4} />
+                <ArrowUpRight size={17} />
               </a>
             </div>
           </div>
         </section>
 
-        <section
-          id="como-agendar"
-          className="section container booking-section"
-        >
-          <div className="center-heading">
-            <span className="eyebrow">DAR EL PRIMER PASO PUEDE SER SIMPLE</span>
-            <h2>
-              Tu próxima cita, <em>más cerca.</em>
-            </h2>
-            <p>Unos pequeños pasos para empezar a cuidarte.</p>
+        <section id="como-agendar" className="appointment-section container">
+          <div className="appointment-heading section-heading">
+            <div>
+              <span className="eyebrow">EMPEZAR PUEDE SER SIMPLE</span>
+              <h2>
+                El siguiente paso,
+                <br />
+                <em>a tu ritmo.</em>
+              </h2>
+            </div>
+            <p>
+              Unos pequeños pasos para comenzar.
+              <br />
+              Sin pagos online, con coordinación personal.
+            </p>
           </div>
-          <div className="steps-grid">
+          <div className="appointment-steps">
             {[
               {
                 n: "01",
                 Icon: Heart,
                 title: "Cuéntame qué necesitas",
-                text: "Elige el motivo de tu consulta. Si tienes dudas, también podemos orientarte.",
+                text: "Elige el motivo de tu consulta. Si tienes dudas, puedes solicitar orientación.",
               },
               {
                 n: "02",
                 Icon: CalendarDays,
-                title: "Elige tu momento",
-                text: "Selecciona una fecha y un horario que te acomoden para solicitar tu atención.",
+                title: "Encuentra tu momento",
+                text: "Indica una fecha y una franja horaria que te acomoden para tu atención.",
               },
               {
                 n: "03",
                 Icon: MessageCircle,
-                title: "Coordinemos por WhatsApp",
-                text: "Envía tu solicitud y confirma la disponibilidad y los detalles directamente.",
+                title: "Coordinemos juntas",
+                text: "Envía tu solicitud por WhatsApp y confirma disponibilidad, modalidad y valor.",
               },
             ].map(({ n, Icon, title, text }) => (
               <div
-                className="step"
+                className="appointment-step step"
                 key={n}
                 style={{ "--step-index": Number(n) - 1 }}
               >
-                <div className="step-top">
-                  <span className="step-number">{n}</span>
-                  <Icon size={23} strokeWidth={1.4} />
+                <div>
+                  <span>{n}</span>
+                  <Icon size={25} strokeWidth={1.2} />
                 </div>
                 <h3>{title}</h3>
                 <p>{text}</p>
               </div>
             ))}
           </div>
-          <button className="button" onClick={() => openBooking()}>
-            Quiero agendar mi cita <ArrowUpRight size={18} />
-          </button>
-          <span className="booking-footnote">
-            Tu solicitud se confirma personalmente por WhatsApp.
-          </span>
-        </section>
-
-        <section className="social-section">
-          <div className="container social-grid">
-            <div>
-              <span className="eyebrow">SIGAMOS CONECTADAS</span>
-              <h2>
-                Un poquito de guía,
-                <br />
-                <em>todos los días.</em>
-              </h2>
-              <p>
-                Conversemos sobre salud, autocuidado y esas
-                <br className="desktop-break" /> preguntas que muchas veces nos
-                guardamos.
-              </p>
-            </div>
-            <div className="social-links">
-              <a
-                className="social-card"
-                href="https://www.instagram.com/matronaguia/"
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                <span className="social-icon">
-                  <Instagram size={25} strokeWidth={1.5} />
-                </span>
-                <span>
-                  <span className="social-label">ENCUÉNTRAME EN INSTAGRAM</span>
-                  <strong>@matronaguia</strong>
-                </span>
-                <ArrowUpRight size={21} />
-              </a>
-              <a
-                className="social-card"
-                href="https://www.tiktok.com/@matronaguia"
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                <span className="social-icon tiktok-icon">
-                  <TikTok size={26} />
-                </span>
-                <span>
-                  <span className="social-label">TAMBIÉN EN TIKTOK</span>
-                  <strong>@matronaguia</strong>
-                </span>
-                <ArrowUpRight size={21} />
-              </a>
-            </div>
+          <div className="appointment-actions">
+            <button className="button" onClick={() => openBooking()}>
+              Agendar mi cita <ArrowUpRight size={18} />
+            </button>
+            <span>La cita se confirma personalmente por WhatsApp.</span>
           </div>
         </section>
 
-        <section id="preguntas" className="section container faq-section">
+        <section id="preguntas" className="editorial-faq container">
           <div className="faq-intro">
-            <span className="eyebrow">CONVERSEMOS SIN DUDAS</span>
+            <span className="eyebrow">UN POCO MÁS DE TRANQUILIDAD</span>
             <h2>
-              Quizás te estás
+              Preguntar también
               <br />
-              <em>preguntando…</em>
+              es <em>cuidarte.</em>
             </h2>
             <p>
-              Y si tu pregunta no está aquí,
+              Resolvamos lo que necesitas saber
               <br />
-              puedes escribirme con confianza.
+              antes de dar el primer paso.
             </p>
             <a
               className="text-link"
@@ -624,22 +505,22 @@ function App() {
             </a>
           </div>
           <div className="faq-list">
-            {faqs.map(([question, answer], i) => (
+            {faqs.map(([question, answer], index) => (
               <div
-                className={`faq-item ${openFaq === i ? "faq-open" : ""}`}
+                className={`faq-item ${openFaq === index ? "faq-open" : ""}`}
                 key={question}
               >
                 <h3>
                   <button
-                    aria-expanded={openFaq === i}
-                    aria-controls={`faq-${i}`}
-                    onClick={() => setOpenFaq(openFaq === i ? null : i)}
+                    aria-expanded={openFaq === index}
+                    aria-controls={`faq-${index}`}
+                    onClick={() => setOpenFaq(openFaq === index ? null : index)}
                   >
                     {question}
                     <Plus size={19} />
                   </button>
                 </h3>
-                <div id={`faq-${i}`} hidden={openFaq !== i}>
+                <div id={`faq-${index}`} hidden={openFaq !== index}>
                   <p>{answer}</p>
                 </div>
               </div>
@@ -647,37 +528,82 @@ function App() {
           </div>
         </section>
 
-        <section className="container final-cta">
-          <Flower2
-            className="cta-flower"
-            strokeWidth={0.7}
-            aria-hidden="true"
-          />
-          <div>
-            <span className="eyebrow">ESTE ESPACIO TAMBIÉN ES TUYO</span>
-            <h2>
-              Empecemos por <em>ti.</em>
-            </h2>
-            <p>Tu bienestar merece tiempo, escucha y una guía cercana.</p>
+        <section className="conversation-band">
+          <div className="container conversation-inner">
+            <div>
+              <span className="eyebrow">ESTE ESPACIO TAMBIÉN ES TUYO</span>
+              <h2>
+                Empecemos con
+                <br />
+                <em>una conversación.</em>
+              </h2>
+              <p>Tu bienestar merece tiempo, escucha y una guía cercana.</p>
+            </div>
+            <div className="conversation-actions">
+              <button
+                className="button button-white"
+                onClick={() => openBooking()}
+              >
+                Agendar una consulta <ArrowUpRight size={19} />
+              </button>
+              <a
+                href={whatsapp()}
+                className="conversation-whatsapp"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                <MessageCircle size={19} /> Escribir por WhatsApp{" "}
+                <ArrowUpRight size={17} />
+              </a>
+            </div>
+            <Flower2
+              className="conversation-flower"
+              strokeWidth={0.7}
+              aria-hidden="true"
+            />
           </div>
-          <button className="button button-white" onClick={() => openBooking()}>
-            Agendar mi primera cita <ArrowUpRight size={19} />
-          </button>
+        </section>
+
+        <section className="editorial-social container">
+          <div>
+            <span className="eyebrow">SIGAMOS CONECTADAS</span>
+            <p>
+              Un poquito de guía, <em>todos los días.</em>
+            </p>
+          </div>
+          <div className="editorial-social-links">
+            <a
+              href="https://www.instagram.com/matronaguia/"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <Instagram size={21} strokeWidth={1.4} />
+              <span>
+                Instagram<small>@matronaguia</small>
+              </span>
+              <ArrowUpRight size={18} />
+            </a>
+            <a
+              href="https://www.tiktok.com/@matronaguia"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <TikTok size={22} />
+              <span>
+                TikTok<small>@matronaguia</small>
+              </span>
+              <ArrowUpRight size={18} />
+            </a>
+          </div>
         </section>
       </main>
 
-      <footer className="footer container">
-        <div className="footer-top">
-          <div>
-            <Brand footer />
-            <p>Contigo, en cada etapa de tu bienestar.</p>
-          </div>
-          <div className="footer-contact">
-            <span>¿CONVERSEMOS?</span>
-            <a href={`tel:+${PHONE}`}>
-              <Phone size={16} /> +56 9 7589 8382
-            </a>
-          </div>
+      <footer className="editorial-footer container">
+        <div className="editorial-footer-top">
+          <Brand footer />
+          <a className="footer-phone" href={`tel:+${PHONE}`}>
+            <Phone size={17} /> +56 9 7589 8382
+          </a>
           <div className="footer-socials">
             <a
               href="https://www.instagram.com/matronaguia/"
@@ -685,7 +611,7 @@ function App() {
               rel="noopener noreferrer"
               aria-label="Instagram de Matrona Guía"
             >
-              <Instagram size={21} />
+              <Instagram size={20} />
             </a>
             <a
               href="https://www.tiktok.com/@matronaguia"
@@ -693,21 +619,13 @@ function App() {
               rel="noopener noreferrer"
               aria-label="TikTok de Matrona Guía"
             >
-              <TikTok size={21} />
-            </a>
-            <a
-              href={whatsapp()}
-              target="_blank"
-              rel="noopener noreferrer"
-              aria-label="WhatsApp de Matrona Guía"
-            >
-              <MessageCircle size={21} />
+              <TikTok size={20} />
             </a>
           </div>
         </div>
-        <div className="footer-bottom">
+        <div className="editorial-footer-bottom">
           <span>
-            © {new Date().getFullYear()} Matrona Guía. Hecho con cuidado.
+            © {new Date().getFullYear()} Matrona Guía. Contigo, en cada etapa.
           </span>
           <span>
             La información del sitio no reemplaza una evaluación profesional.
@@ -715,28 +633,31 @@ function App() {
         </div>
       </footer>
 
-      <a
-        className="whatsapp-float"
-        href={whatsapp()}
-        target="_blank"
-        rel="noopener noreferrer"
-        aria-label="Conversemos por WhatsApp"
-      >
-        <MessageCircle size={25} />
-        <span>¿Conversamos?</span>
-      </a>
-
-      {scrolled && (
+      {pastHero && (
+        <a
+          className="whatsapp-float"
+          href={whatsapp()}
+          target="_blank"
+          rel="noopener noreferrer"
+          aria-label="Conversemos por WhatsApp"
+        >
+          <MessageCircle size={24} />
+          <span>¿Conversamos?</span>
+        </a>
+      )}
+      {scrolled && pastHero && (
         <button
           className="back-to-top"
           aria-label="Volver al inicio"
           onClick={() => {
-            document.getElementById("inicio").scrollIntoView({
-              behavior: window.matchMedia("(prefers-reduced-motion: reduce)")
-                .matches
-                ? "instant"
-                : "smooth",
-            });
+            document
+              .getElementById("inicio")
+              .scrollIntoView({
+                behavior: window.matchMedia("(prefers-reduced-motion: reduce)")
+                  .matches
+                  ? "instant"
+                  : "smooth",
+              });
             document.getElementById("inicio").focus({ preventScroll: true });
           }}
         >
