@@ -1,72 +1,147 @@
-import { Baby, Flower2, Heart, Sprout } from "lucide-react";
+import { Flower2, Microscope, ShieldCheck, Syringe } from "lucide-react";
 
 export const PHONE = "56975898382";
 export const whatsapp = (
   message = "¡Hola, Matrona Guía! Me gustaría conocer más sobre la atención y solicitar una cita.",
 ) => `https://wa.me/${PHONE}?text=${encodeURIComponent(message)}`;
+
+export const profile = {
+  name: "Camila Rojas",
+  fullName: "Matrona Camila Rojas",
+  role: "Matrona",
+  education:
+    "Licenciada en Obstetricia y Puericultura con excelencia de la Universidad San Sebastián.",
+  university: "Universidad San Sebastián",
+  location: "Ñuñoa, Santiago",
+  coverage: "Atención presencial en Ñuñoa y online para todo Chile.",
+  instagram: "https://www.instagram.com/matronaguia/",
+  tiktok: "https://www.tiktok.com/@matronaguia",
+};
+
+export const categories = [
+  { id: "todos", label: "Todos", Icon: Flower2 },
+  { id: "examenes", label: "Exámenes", Icon: Microscope },
+  { id: "anticoncepcion", label: "Anticoncepción", Icon: ShieldCheck },
+  { id: "inyectables", label: "Inyectables", Icon: Syringe },
+];
+
+export const formatPriceCLP = (price) =>
+  new Intl.NumberFormat("es-CL", {
+    style: "currency",
+    currency: "CLP",
+    maximumFractionDigits: 0,
+  }).format(price);
+
 export const services = [
   {
-    id: "ginecologia",
-    title: "Salud ginecológica",
-    category: "Bienestar íntimo",
-    Icon: Flower2,
+    id: "pap",
+    title: "Toma de PAP",
+    category: "examenes",
+    Icon: Microscope,
     color: "rose",
+    price: 20000,
+    modality: "presencial",
+    priceNote: "Incluye kit de muestra y entrega de resultados.",
     description:
-      "Un espacio para conocer tu cuerpo, resolver dudas y cuidar tu salud íntima.",
+      "Toma de PAP con kit de muestra y entrega de resultados incluidos.",
     detail:
-      "Conversemos sobre salud menstrual, cuidados íntimos y tus dudas ginecológicas. La consulta permite orientar tus próximos pasos y revisar qué atención necesitas.",
+      "El valor de la toma de PAP incluye el kit de muestra y la entrega de resultados. Coordina tu atención directamente con Camila por WhatsApp.",
     points: [
-      "Orientación sobre tu ciclo menstrual",
-      "Dudas y cuidados de salud íntima",
-      "Prevención y autocuidado",
+      "Kit de muestra incluido",
+      "Entrega de resultados incluida",
+      "Valor: $20.000 CLP",
     ],
   },
   {
-    id: "anticoncepcion",
-    title: "Anticoncepción",
-    category: "Bienestar íntimo",
-    Icon: Sprout,
+    id: "insercion-implante",
+    title: "Inserción de Implanon o Levoplant",
+    category: "anticoncepcion",
+    Icon: ShieldCheck,
     color: "sage",
-    description:
-      "Información clara para tomar decisiones que se sientan bien para ti.",
+    price: 40000,
+    modality: "presencial",
+    priceNote: "No incluye el dispositivo.",
+    description: "Inserción de implante subdérmico Implanon o Levoplant.",
     detail:
-      "Cada cuerpo y cada momento de vida son distintos. Recibe orientación sobre métodos anticonceptivos y conversa tus preferencias para evaluar las alternativas junto a una profesional.",
+      "Inserción presencial de Implanon o Levoplant en Ñuñoa, Santiago. El valor no incluye el dispositivo, que se paga aparte. Coordina los detalles por WhatsApp.",
     points: [
-      "Información sobre métodos disponibles",
-      "Orientación según tus necesidades",
-      "Espacio para resolver tus preguntas",
+      "Implanon o Levoplant",
+      "No incluye el dispositivo",
+      "Atención presencial en Ñuñoa",
+      "Valor: $40.000 CLP",
     ],
   },
   {
-    id: "maternidad",
-    title: "Embarazo y postparto",
-    category: "Maternidad",
-    Icon: Baby,
+    id: "insercion-diu",
+    title: "Inserción de DIU",
+    category: "anticoncepcion",
+    Icon: ShieldCheck,
     color: "peach",
-    description:
-      "Acompañamiento cercano en una etapa llena de cambios y nuevas preguntas.",
+    price: 40000,
+    modality: "presencial",
+    priceNote: "No incluye el dispositivo.",
+    description: "Inserción de DIU de cobre o Silverflex.",
     detail:
-      "Un espacio de orientación para conversar sobre los cambios del embarazo y el postparto. Consulta por el acompañamiento disponible y cómo puede complementar tus controles de salud.",
+      "Inserción presencial de DIU de cobre o Silverflex en Ñuñoa, Santiago. El valor no incluye el dispositivo, que se paga aparte. Coordina los detalles por WhatsApp.",
     points: [
-      "Orientación durante el embarazo",
-      "Autocuidado en el postparto",
-      "Dudas sobre esta nueva etapa",
+      "DIU de cobre o Silverflex",
+      "No incluye el dispositivo",
+      "Atención presencial en Ñuñoa",
+      "Valor: $40.000 CLP",
     ],
   },
   {
-    id: "bienestar",
-    title: "Ciclo y bienestar",
-    category: "Bienestar íntimo",
-    Icon: Heart,
+    id: "extraccion-implante",
+    title: "Extracción de implante subdérmico",
+    category: "anticoncepcion",
+    Icon: ShieldCheck,
     color: "lilac",
-    description:
-      "Escucha y orientación para vivir cada etapa de tu salud con más confianza.",
+    price: 35000,
+    modality: "presencial",
+    priceNote: "Atención presencial.",
+    description: "Atención para la extracción de implantes subdérmicos.",
     detail:
-      "Tu bienestar cambia contigo. Conversemos sobre el ciclo, los cambios de etapa y los hábitos de autocuidado, con información que te ayude a entender mejor lo que estás viviendo.",
+      "Solicita una atención para la extracción de tu implante subdérmico. Los detalles y la disponibilidad se coordinan personalmente por WhatsApp.",
     points: [
-      "Conocer y registrar tu ciclo",
-      "Cambios a lo largo de la vida",
-      "Educación en salud y bienestar",
+      "Extracción de implante subdérmico",
+      "Coordinación directa con Camila",
+      "Valor: $35.000 CLP",
+    ],
+  },
+  {
+    id: "extraccion-diu",
+    title: "Extracción de DIU",
+    category: "anticoncepcion",
+    Icon: ShieldCheck,
+    color: "rose",
+    price: 40000,
+    modality: "presencial",
+    priceNote: "Atención presencial.",
+    description: "Atención para la extracción de un dispositivo intrauterino.",
+    detail:
+      "Coordina una atención para la extracción de DIU. Consulta la disponibilidad y los detalles de la atención por WhatsApp.",
+    points: [
+      "Extracción de dispositivo intrauterino",
+      "Coordinación directa con Camila",
+      "Valor: $40.000 CLP",
+    ],
+  },
+  {
+    id: "inyectable",
+    title: "Inyectable IM o vacuna",
+    category: "inyectables",
+    Icon: Syringe,
+    color: "peach",
+    price: 15000,
+    modality: "presencial",
+    priceNote: "Solo administración. Medicamento no incluido.",
+    description: "Administración de inyectable intramuscular o vacuna.",
+    detail:
+      "Administración presencial de un inyectable intramuscular o una vacuna en Ñuñoa, Santiago. El valor corresponde solo a la administración; el medicamento se paga aparte. Coordina los detalles por WhatsApp.",
+    points: [
+      "Inyectable intramuscular o vacuna",
+      "Solo administración; medicamento no incluido",
+      "Valor: $15.000 CLP",
     ],
   },
 ];

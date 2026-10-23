@@ -1,4 +1,4 @@
-import { mkdir, readFile, writeFile } from "node:fs/promises";
+import { mkdir, readFile, readdir, writeFile } from "node:fs/promises";
 import { dirname, extname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -13,6 +13,8 @@ const mimeTypes = {
   ".webp": "image/webp",
   ".svg": "image/svg+xml",
   ".jpg": "image/jpeg",
+  ".jpeg": "image/jpeg",
+  ".png": "image/png",
   ".mp4": "video/mp4",
   ".vtt": "text/vtt",
 };
@@ -43,20 +45,21 @@ for (const match of [
     resolve(dist, match[1].replace(/^\//, "")),
     "utf8",
   );
-  const bundledAssets = [
-    "images/maternity.webp",
-    "images/video-horizontal.jpg",
-    "images/video-vertical.jpg",
-    "videos/presentacion-horizontal.mp4",
-    "videos/presentacion-vertical.mp4",
-    "videos/presentacion-es.vtt",
-    "images/scroll-poster-desktop.jpg",
-    "images/scroll-poster-mobile.jpg",
-    "videos/scroll-film-desktop.mp4",
-    "videos/scroll-film-mobile.mp4",
-    ...Array.from({ length: 5 }, (_, i) => `videos/gallery-${i + 1}.mp4`),
-    ...Array.from({ length: 5 }, (_, i) => `images/gallery-${i + 1}.jpg`),
-  ];
+  const collectAssets = async (directory, prefix = "") => {
+    const entries = await readdir(directory, { withFileTypes: true });
+    const results = await Promise.all(
+      entries.map((entry) =>
+        entry.isDirectory()
+          ? collectAssets(
+              resolve(directory, entry.name),
+              `${prefix}${entry.name}/`,
+            )
+          : [`${prefix}${entry.name}`],
+      ),
+    );
+    return results.flat();
+  };
+  const bundledAssets = await collectAssets(resolve(project, "public"));
   for (const asset of bundledAssets) {
     if (!javascript.includes(`/${asset}`)) continue;
     javascript = javascript.replaceAll(

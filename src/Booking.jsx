@@ -7,13 +7,21 @@ import {
   ChevronLeft,
   ChevronRight,
   Clock3,
+  CircleDollarSign,
   Flower2,
   Heart,
   LockKeyhole,
   MessageCircle,
   X,
 } from "lucide-react";
-import { services, getToday, dateKey, formatDate } from "./content";
+import {
+  services,
+  getToday,
+  dateKey,
+  formatDate,
+  formatPriceCLP,
+  PHONE,
+} from "./content";
 
 export function Modal({ onClose, title, children, className = "" }) {
   const modalRef = useRef(null);
@@ -99,12 +107,15 @@ export default function Booking({ initialService, onClose }) {
     month.getMonth() + 1,
     0,
   ).getDate();
-  const selectedService =
-    services.find((s) => s.id === service)?.title || "Orientación general";
+  const selectedServiceData = services.find((s) => s.id === service);
+  const selectedService = selectedServiceData?.title || "Orientación general";
+  const selectedPrice = selectedServiceData
+    ? `${formatPriceCLP(selectedServiceData.price)} CLP`
+    : "Consultar";
   const canContinue = step === 1 ? !!service : !!selectedDate && !!period;
   const changeMonth = (delta) =>
     setMonth(new Date(month.getFullYear(), month.getMonth() + delta, 1));
-  const sendMessage = `¡Hola, Matrona Guía! Soy ${name.trim()}. Me gustaría solicitar una cita.\n\nMotivo: ${selectedService}\nFecha preferida: ${selectedDate ? formatDate(selectedDate) : ""}\nHorario preferido: ${period} (hora de Chile continental)\n\nQuedo pendiente de confirmar disponibilidad, modalidad y valor de la atención. ¡Gracias!`;
+  const sendMessage = `¡Hola, Matrona Guía! Soy ${name.trim()}. Me gustaría solicitar una cita.\n\nMotivo: ${selectedService}\nValor informado: ${selectedPrice}${selectedServiceData?.priceNote ? `\nDetalle del valor: ${selectedServiceData.priceNote}` : ""}\nFecha preferida: ${selectedDate ? formatDate(selectedDate) : ""}\nHorario preferido: ${period} (hora de Chile continental)\n\nQuedo pendiente de confirmar disponibilidad, modalidad y detalles de la atención. ¡Gracias!`;
 
   return (
     <Modal
@@ -150,8 +161,9 @@ export default function Booking({ initialService, onClose }) {
                   id: "orientacion",
                   title: "Necesito orientación",
                   Icon: MessageCircle,
+                  price: null,
                 },
-              ].map(({ id, title, Icon }) => (
+              ].map(({ id, title, Icon, price }) => (
                 <button
                   className={`booking-service ${service === id ? "selected" : ""}`}
                   key={id}
@@ -159,7 +171,21 @@ export default function Booking({ initialService, onClose }) {
                   onClick={() => setService(id)}
                 >
                   <Icon size={21} strokeWidth={1.5} />
-                  <span>{title}</span>
+                  <span className="booking-service-label">
+                    <span>{title}</span>
+                    <small
+                      style={{
+                        display: "block",
+                        marginTop: 5,
+                        fontSize: 11,
+                        fontWeight: 500,
+                      }}
+                    >
+                      {price == null
+                        ? "Valor a consultar"
+                        : `${formatPriceCLP(price)} CLP`}
+                    </small>
+                  </span>
                   <span className="radio-circle">
                     {service === id && <span />}
                   </span>
@@ -272,6 +298,23 @@ export default function Booking({ initialService, onClose }) {
                 </span>
               </div>
               <div>
+                <CircleDollarSign size={18} />
+                <span>
+                  Valor de la atención<strong>{selectedPrice}</strong>
+                  {selectedServiceData?.priceNote && (
+                    <small
+                      style={{
+                        display: "block",
+                        marginTop: 5,
+                        lineHeight: 1.5,
+                      }}
+                    >
+                      {selectedServiceData.priceNote}
+                    </small>
+                  )}
+                </span>
+              </div>
+              <div>
                 <CalendarDays size={18} />
                 <span>
                   Fecha preferida
@@ -289,7 +332,7 @@ export default function Booking({ initialService, onClose }) {
             <form
               id="booking-form"
               ref={formRef}
-              action="https://wa.me/56975898382"
+              action={`https://wa.me/${PHONE}`}
               method="get"
               target="_blank"
               rel="noopener noreferrer"

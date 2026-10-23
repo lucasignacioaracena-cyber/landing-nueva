@@ -1,5 +1,4 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import type { KeyboardEvent as ReactKeyboardEvent } from "react";
 import {
   ArrowDown,
   ArrowDownRight,
@@ -7,1014 +6,793 @@ import {
   ArrowUpRight,
   CalendarDays,
   Check,
+  ChevronLeft,
+  ChevronRight,
+  CircleCheck,
   Flower2,
+  Globe2,
+  GraduationCap,
   Heart,
+  Info,
   Instagram,
+  MapPin,
+  Menu,
   MessageCircle,
-  Pause,
-  Play,
   Plus,
+  Search,
   ShieldCheck,
-  Sprout,
+  Sparkles,
   X,
 } from "lucide-react";
-import Booking from "./Booking";
-import { services, whatsapp } from "./content";
+import Booking, { Modal } from "./Booking";
+import {
+  categories,
+  formatPriceCLP,
+  profile,
+  services,
+  whatsapp,
+} from "./content";
+import { photos } from "./photos";
 
-const BRAND = "matrona guía.";
-const clamp = (n: number, min = 0, max = 1) => Math.min(max, Math.max(min, n));
-const smoothstep = (n: number) => n * n * (3 - 2 * n);
-const motionQuery = () =>
-  window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-const seenIntro = () => {
-  try {
-    return sessionStorage.getItem("matrona-intro-v2") === "seen";
-  } catch {
-    return false;
-  }
-};
-const rememberIntro = () => {
-  try {
-    sessionStorage.setItem("matrona-intro-v2", "seen");
-  } catch {
-    /* local files can restrict session storage */
-  }
-};
-const gallery = [
-  {
-    name: "Tu bienestar",
-    line: "Conocer tu cuerpo es una forma de cuidarte.",
-    note: "Información clara sobre tu salud íntima, tu ciclo y el autocuidado.",
-    service: "ginecologia",
-    video: "/videos/gallery-1.mp4",
-    poster: "/images/gallery-1.jpg",
-  },
-  {
-    name: "Tu voz",
-    line: "Aquí, todas tus preguntas tienen un lugar.",
-    note: "Un espacio para conversar con confianza y sin juicios.",
-    service: "",
-    video: "/videos/gallery-2.mp4",
-    poster: "/images/gallery-2.jpg",
-  },
-  {
-    name: "Tu etapa",
-    line: "Acompañarte, en un momento de cambios.",
-    note: "Orientación durante el embarazo y el postparto, respetando tu ritmo.",
-    service: "maternidad",
-    video: "/videos/gallery-3.mp4",
-    poster: "/images/gallery-3.jpg",
-  },
-  {
-    name: "Tus decisiones",
-    line: "Tu cuerpo. Tus decisiones. Tu camino.",
-    note: "Orientación sobre anticoncepción para decidir con información.",
-    service: "anticoncepcion",
-    video: "/videos/gallery-4.mp4",
-    poster: "/images/gallery-4.jpg",
-  },
-  {
-    name: "Tu momento",
-    line: "El primer paso puede ser una conversación.",
-    note: "Cuéntame qué necesitas y coordinemos tu consulta por WhatsApp.",
-    service: "bienestar",
-    video: "/videos/gallery-5.mp4",
-    poster: "/images/gallery-5.jpg",
-  },
-];
+type Service = (typeof services)[number];
+const normalize = (text: string) =>
+  text
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase();
 const faqs = [
   [
-    "¿Cómo agendo mi cita?",
-    "Elige el motivo, una fecha y un horario preferidos. Al terminar, se abrirá WhatsApp con tu solicitud preparada. Envía el mensaje para coordinar y confirmar la atención personalmente.",
+    "¿Dónde atiende Camila?",
+    "La atención presencial es en Ñuñoa, Santiago. También ofrece atención online para todo Chile. Escríbele por WhatsApp para coordinar la modalidad y los detalles de tu consulta.",
   ],
   [
-    "¿La atención es presencial u online?",
-    "Consulta por la modalidad y el lugar de atención disponibles en WhatsApp antes de confirmar tu cita.",
+    "¿Qué incluye la toma de PAP?",
+    "El valor de $20.000 incluye el kit de muestra y la entrega de resultados. Puedes coordinar tu atención presencial desde el botón para agendar.",
   ],
   [
-    "¿Cómo conozco el valor de la consulta?",
-    "Conversemos por WhatsApp para conocer el valor y los medios de pago antes de confirmar la atención.",
+    "¿Los valores de inserción incluyen el dispositivo?",
+    "No. Los $40.000 de inserción de Implanon o Levoplant y los $40.000 de inserción de DIU corresponden al procedimiento. El dispositivo se paga aparte.",
   ],
   [
-    "¿Y si no sé qué consulta necesito?",
-    "Puedes elegir “Necesito orientación” al agendar. Cuéntame qué necesitas y revisemos juntas el siguiente paso.",
+    "¿Qué incluyen los $15.000 del inyectable?",
+    "El valor corresponde solo a la administración del inyectable intramuscular o vacuna. El medicamento no está incluido.",
+  ],
+  [
+    "¿Cómo se confirma mi cita?",
+    "Elige tu atención y una fecha y horario preferidos. Al terminar se abrirá WhatsApp con tu solicitud preparada. Envía el mensaje para coordinar y confirmar personalmente la disponibilidad.",
   ],
 ];
 
-function CountUp({
-  end,
-  label,
-  reduced,
+function Portrait({
+  index = 0,
+  className = "",
+  loading = "lazy",
 }: {
-  end: number;
-  label: string;
-  reduced: boolean;
+  index?: number;
+  className?: string;
+  loading?: "lazy" | "eager";
 }) {
-  const node = useRef<HTMLSpanElement>(null);
-  const [value, setValue] = useState(reduced ? end : 0);
-  useEffect(() => {
-    if (reduced) {
-      setValue(end);
-      return;
-    }
-    let frame = 0;
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (!entry.isIntersecting) return;
-        observer.disconnect();
-        const start = performance.now();
-        const tick = (now: number) => {
-          const p = clamp((now - start) / 2000);
-          setValue(Math.round((1 - Math.pow(1 - p, 3)) * end));
-          if (p < 1) frame = requestAnimationFrame(tick);
-        };
-        frame = requestAnimationFrame(tick);
-      },
-      { threshold: 0.3 },
+  const photo = photos[index % photos.length];
+  const [failed, setFailed] = useState(false);
+  useEffect(() => setFailed(false), [photo.src]);
+  if (photo.src && !failed)
+    return (
+      <img
+        className={className}
+        src={photo.src}
+        alt={photo.alt}
+        style={{ objectPosition: photo.position }}
+        loading={loading}
+        onError={() => setFailed(true)}
+      />
     );
-    if (node.current) observer.observe(node.current);
-    return () => {
-      observer.disconnect();
-      cancelAnimationFrame(frame);
-    };
-  }, [end, reduced]);
   return (
-    <div className="mg-stat">
-      <span className="mg-stat-number" ref={node} aria-hidden="true">
-        {String(value).padStart(2, "0")}
+    <div className={`cg-portrait-fallback ${className}`} aria-hidden="true">
+      <Flower2 strokeWidth={0.5} />
+      <span>
+        cr<span>.</span>
       </span>
-      <span className="sr-only">{end} </span>
-      <span className="mg-stat-label">{label}</span>
+      <small>MATRONA GUÍA</small>
     </div>
   );
 }
 
-export default function App() {
-  const [reduced, setReduced] = useState(motionQuery);
-  const [introDone, setIntroDone] = useState(
-    () => motionQuery() || seenIntro(),
+function Brand() {
+  return (
+    <a className="cg-brand" href="#inicio" aria-label="Matrona Guía, inicio">
+      <span className="cg-brand-icon">
+        <Flower2 size={29} strokeWidth={1.3} />
+      </span>
+      <span>
+        matrona <em>guía.</em>
+      </span>
+    </a>
   );
-  const [lifting, setLifting] = useState(introDone);
-  const [heroReady, setHeroReady] = useState(introDone);
-  const [letters, setLetters] = useState(0);
-  const [cursor, setCursor] = useState(true);
-  const [menuOpen, setMenuOpen] = useState(false);
-  const [navOnDark, setNavOnDark] = useState(false);
+}
+
+export default function App() {
+  const [menu, setMenu] = useState(false);
+  const [category, setCategory] = useState("todos");
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [query, setQuery] = useState("");
+  const [detail, setDetail] = useState<Service | null>(null);
   const [booking, setBooking] = useState<{ service: string } | null>(null);
-  const [activeService, setActiveService] = useState(services[0].id);
-  const [activeGallery, setActiveGallery] = useState(0);
-  const [galleryReady, setGalleryReady] = useState(false);
-  const [galleryInView, setGalleryInView] = useState(false);
-  const [galleryPaused, setGalleryPaused] = useState(false);
-  const [pageVisible, setPageVisible] = useState(true);
-  const [videoFailed, setVideoFailed] = useState(false);
-  const [frameReady, setFrameReady] = useState(false);
-  const [mobile, setMobile] = useState(() => innerWidth < 768);
-  const [openFaq, setOpenFaq] = useState<number | null>(null);
-  const heroRef = useRef<HTMLElement>(null);
-  const darkRef = useRef<HTMLElement>(null);
-  const galleryRef = useRef<HTMLElement>(null);
-  const frameRef = useRef<HTMLDivElement>(null);
-  const videoRef = useRef<HTMLVideoElement>(null);
+  const [portrait, setPortrait] = useState(0);
+  const [faq, setFaq] = useState<number | null>(null);
+  const [scrollTop, setScrollTop] = useState(false);
+  const searchRef = useRef<HTMLInputElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);
   const menuButtonRef = useRef<HTMLButtonElement>(null);
-  const galleryButtons = useRef<(HTMLButtonElement | null)[]>([]);
-  const galleryVideos = useRef<(HTMLVideoElement | null)[]>([]);
-  const selectedService = services.find((s) => s.id === activeService)!;
-  const isStatic = reduced || videoFailed;
+  const filtered = services.filter(
+    (s) =>
+      (category === "todos" || s.category === category) &&
+      normalize(`${s.title} ${s.description} ${s.detail}`).includes(
+        normalize(query.trim()),
+      ),
+  );
 
-  const finishIntro = useCallback(() => {
-    setLetters(BRAND.length);
-    setCursor(false);
-    setLifting(true);
-    setHeroReady(true);
-    setIntroDone(true);
-    rememberIntro();
-  }, []);
-
+  const closeBooking = useCallback(() => setBooking(null), []);
+  const closeDetail = useCallback(() => setDetail(null), []);
   const openBooking = useCallback(
     (service = "") => {
-      if (menuOpen) {
-        setMenuOpen(false);
+      if (detail || menu) {
+        setDetail(null);
+        setMenu(false);
         requestAnimationFrame(() => {
-          menuButtonRef.current?.focus();
+          const trigger = service
+            ? document.querySelector<HTMLButtonElement>(
+                `[data-book="${service}"]`,
+              )
+            : menuButtonRef.current;
+          trigger?.focus({ preventScroll: true });
           setBooking({ service });
         });
       } else setBooking({ service });
     },
-    [menuOpen],
+    [detail, menu],
   );
-  const closeBooking = useCallback(() => setBooking(null), []);
 
   useEffect(() => {
-    const motion = matchMedia("(prefers-reduced-motion: reduce)");
-    const size = matchMedia("(max-width: 767px)");
-    const updateMotion = () => {
-      setReduced(motion.matches);
-      if (motion.matches) finishIntro();
+    const desktop = matchMedia("(min-width: 981px)");
+    const closeOnDesktop = () => {
+      if (desktop.matches) setMenu(false);
     };
-    const updateSize = () => {
-      setMobile(size.matches);
-      setFrameReady(false);
-      setVideoFailed(false);
-    };
-    const visibility = () => setPageVisible(!document.hidden);
-    motion.addEventListener("change", updateMotion);
-    size.addEventListener("change", updateSize);
-    document.addEventListener("visibilitychange", visibility);
-    return () => {
-      motion.removeEventListener("change", updateMotion);
-      size.removeEventListener("change", updateSize);
-      document.removeEventListener("visibilitychange", visibility);
-    };
-  }, [finishIntro]);
+    desktop.addEventListener("change", closeOnDesktop);
+    return () => desktop.removeEventListener("change", closeOnDesktop);
+  }, []);
 
   useEffect(() => {
-    if (introDone || reduced) return;
-    const timers: ReturnType<typeof setTimeout>[] = [];
-    Array.from(BRAND).forEach((_, i) =>
-      timers.push(setTimeout(() => setLetters(i + 1), 600 + i * 90)),
-    );
-    const liftAt = 600 + BRAND.length * 90 + 350;
-    timers.push(setTimeout(() => setCursor(false), liftAt - 150));
-    timers.push(setTimeout(() => setLifting(true), liftAt));
-    timers.push(setTimeout(() => setHeroReady(true), liftAt + 950));
-    timers.push(setTimeout(finishIntro, liftAt + 1600));
-    return () => timers.forEach(clearTimeout);
-  }, [introDone, reduced, finishIntro]);
+    const update = () => setScrollTop(window.scrollY > 650);
+    window.addEventListener("scroll", update, { passive: true });
+    update();
+    return () => window.removeEventListener("scroll", update);
+  }, []);
 
   useEffect(() => {
-    if (introDone) return;
-    const original = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-    return () => {
-      document.body.style.overflow = original;
-    };
-  }, [introDone]);
+    if (searchOpen) searchRef.current?.focus();
+  }, [searchOpen]);
 
   useEffect(() => {
-    if (!menuOpen) return;
-    const original = document.body.style.overflow;
+    if (!menu) return;
+    const overflow = document.body.style.overflow;
     document.body.style.overflow = "hidden";
     menuRef.current?.focus();
-    const key = (e: globalThis.KeyboardEvent) => {
-      if (e.key === "Escape") setMenuOpen(false);
-      if (e.key !== "Tab") return;
+    const key = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setMenu(false);
+      if (event.key !== "Tab") return;
       const controls = [
         menuButtonRef.current,
         ...Array.from(
-          menuRef.current?.querySelectorAll<HTMLElement>("a[href], button") ||
+          menuRef.current?.querySelectorAll<HTMLElement>("a[href],button") ||
             [],
         ),
       ].filter((n): n is HTMLElement => Boolean(n));
       const first = controls[0],
         last = controls.at(-1);
       if (
-        e.shiftKey &&
+        event.shiftKey &&
         (document.activeElement === first ||
           document.activeElement === menuRef.current)
       ) {
-        e.preventDefault();
+        event.preventDefault();
         last?.focus();
       } else if (
-        !e.shiftKey &&
+        !event.shiftKey &&
         (document.activeElement === last ||
           document.activeElement === menuRef.current)
       ) {
-        e.preventDefault();
+        event.preventDefault();
         first?.focus();
       }
     };
     document.addEventListener("keydown", key);
     return () => {
-      document.body.style.overflow = original;
+      document.body.style.overflow = overflow;
       document.removeEventListener("keydown", key);
       menuButtonRef.current?.focus();
     };
-  }, [menuOpen]);
+  }, [menu]);
 
-  // Scroll owns both the floating composition and the paused video's timeline.
   useEffect(() => {
-    let tick = 0,
-      seek = 0,
-      disposed = false,
-      latest = 0;
-    const video = videoRef.current;
-    const seekToLatest = () => {
-      seek = 0;
-      if (
-        disposed ||
-        isStatic ||
-        !introDone ||
-        document.hidden ||
-        !video ||
-        video.readyState < 1 ||
-        video.seeking ||
-        !Number.isFinite(video.duration)
-      )
+    const preference = matchMedia("(prefers-reduced-motion: reduce)");
+    const nodes = document.querySelectorAll<HTMLElement>(".cg-reveal");
+    let observer: IntersectionObserver | undefined;
+    const setup = () => {
+      observer?.disconnect();
+      if (preference.matches) {
+        nodes.forEach((n) => n.classList.add("cg-visible"));
         return;
-      const target = latest * Math.max(0, video.duration - 1 / 30);
-      if (Math.abs(video.currentTime - target) > 1 / 60)
-        video.currentTime = target;
-    };
-    const queueSeek = () => {
-      if (!seek) seek = requestAnimationFrame(seekToLatest);
-    };
-    const update = () => {
-      tick = 0;
-      if (
-        !heroRef.current ||
-        !darkRef.current ||
-        !galleryRef.current ||
-        !frameRef.current
-      )
-        return;
-      const vw = innerWidth,
-        vh = innerHeight;
-      const hero = heroRef.current.getBoundingClientRect();
-      const dark = darkRef.current.getBoundingClientRect();
-      const tiles = galleryRef.current.getBoundingClientRect();
-      setNavOnDark([dark, tiles].some((r) => r.top <= 0 && r.bottom > 0));
-      const total = document.documentElement.scrollHeight - vh;
-      document.documentElement.style.setProperty(
-        "--mg-progress",
-        String(clamp(scrollY / Math.max(1, total))),
+      }
+      observer = new IntersectionObserver(
+        (entries) =>
+          entries.forEach((entry) => {
+            if (entry.isIntersecting) {
+              entry.target.classList.add("cg-visible");
+              observer?.unobserve(entry.target);
+            }
+          }),
+        { threshold: 0.06 },
       );
-      if (isStatic) return;
-      const landscape = vh <= 560 && vw > vh;
-      const w = landscape
-        ? vw * 0.4
-        : vw < 768
-          ? Math.min(vw - 48, 500)
-          : Math.min(vw * 0.49, 740);
-      const h = landscape
-        ? vh * 0.72
-        : vw < 768
-          ? Math.min(vh * 0.43, 470)
-          : Math.min(vh * 0.54, 600);
-      const p = clamp(
-        (-hero.top - hero.height * 0.3) /
-          Math.max(1, hero.height * 0.7 + vh * 0.68),
-      );
-      const t = smoothstep(smoothstep(p));
-      const startX = landscape ? vw - w - 24 : (vw - w) / 2,
-        startY = vh - h - 18;
-      const finalScale = 1.45;
-      const endX = -w * finalScale * 0.72;
-      const endY = vh * 0.43 - (h * finalScale) / 2;
-      const x = startX + (endX - startX) * t;
-      const y = startY + (endY - startY) * t;
-      const scale = 1 + (finalScale - 1) * t;
-      const opacity =
-        vw < 768
-          ? clamp(dark.top / (vh * 0.46))
-          : clamp(tiles.top / (vh * 0.32));
-      Object.assign(frameRef.current.style, {
-        width: `${w}px`,
-        height: `${h}px`,
-        transform: `translate3d(${x}px, ${y}px, 0) scale(${scale})`,
-        opacity: String(opacity),
-        visibility: opacity > 0 ? "visible" : "hidden",
-      });
-      frameRef.current.dataset.progress = p.toFixed(4);
-      latest = p;
-      queueSeek();
+      nodes.forEach((n) => observer?.observe(n));
     };
-    const requestUpdate = () => {
-      if (!tick) tick = requestAnimationFrame(update);
-    };
-    const metadata = () => {
-      video?.pause();
-      requestUpdate();
-    };
-    const ready = () => {
-      setFrameReady(true);
-      queueSeek();
-    };
-    video?.addEventListener("loadedmetadata", metadata);
-    video?.addEventListener("loadeddata", ready);
-    video?.addEventListener("seeked", ready);
-    window.addEventListener("scroll", requestUpdate, { passive: true });
-    window.addEventListener("resize", requestUpdate, { passive: true });
-    document.addEventListener("visibilitychange", requestUpdate);
-    const resize = new ResizeObserver(requestUpdate);
-    [heroRef.current, darkRef.current, galleryRef.current].forEach(
-      (n) => n && resize.observe(n),
-    );
-    if (video && video.readyState >= 2) ready();
-    update();
+    setup();
+    preference.addEventListener("change", setup);
     return () => {
-      disposed = true;
-      cancelAnimationFrame(tick);
-      cancelAnimationFrame(seek);
-      resize.disconnect();
-      video?.removeEventListener("loadedmetadata", metadata);
-      video?.removeEventListener("loadeddata", ready);
-      video?.removeEventListener("seeked", ready);
-      window.removeEventListener("scroll", requestUpdate);
-      window.removeEventListener("resize", requestUpdate);
-      document.removeEventListener("visibilitychange", requestUpdate);
+      observer?.disconnect();
+      preference.removeEventListener("change", setup);
     };
-  }, [mobile, isStatic, introDone]);
-
-  useEffect(() => {
-    const section = galleryRef.current;
-    if (!section) return;
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        setGalleryInView(entry.isIntersecting);
-        if (entry.isIntersecting) setGalleryReady(true);
-      },
-      { rootMargin: "120px 0px", threshold: 0 },
-    );
-    observer.observe(section);
-    return () => observer.disconnect();
   }, []);
-
-  useEffect(() => {
-    const play =
-      galleryInView &&
-      !galleryPaused &&
-      !reduced &&
-      pageVisible &&
-      !booking &&
-      !menuOpen;
-    galleryVideos.current.forEach((video) => {
-      if (!video) return;
-      if (play)
-        void video.play().catch(() => {
-          /* poster remains when autoplay is unavailable */
-        });
-      else video.pause();
-    });
-  }, [
-    galleryReady,
-    galleryInView,
-    galleryPaused,
-    reduced,
-    pageVisible,
-    booking,
-    menuOpen,
-  ]);
-
-  useEffect(() => {
-    const nodes = document.querySelectorAll<HTMLElement>(".mg-reveal");
-    if (reduced) {
-      nodes.forEach((n) => n.classList.add("mg-revealed"));
-      return;
-    }
-    const observer = new IntersectionObserver(
-      (entries) =>
-        entries.forEach((e) => {
-          if (e.isIntersecting) {
-            e.target.classList.add("mg-revealed");
-            observer.unobserve(e.target);
-          }
-        }),
-      { threshold: 0.08 },
-    );
-    nodes.forEach((n) => observer.observe(n));
-    return () => observer.disconnect();
-  }, [reduced]);
-
-  const navigateGallery = (
-    event: ReactKeyboardEvent<HTMLButtonElement>,
-    index: number,
-  ) => {
-    let next = index;
-    if (event.key === "ArrowRight") next = (index + 1) % gallery.length;
-    else if (event.key === "ArrowLeft")
-      next = (index + gallery.length - 1) % gallery.length;
-    else if (event.key === "Home") next = 0;
-    else if (event.key === "End") next = gallery.length - 1;
-    else return;
-    event.preventDefault();
-    setActiveGallery(next);
-    galleryButtons.current[next]?.focus();
-  };
 
   return (
     <>
-      <div
-        className={`mg-root ${isStatic ? "mg-static" : ""} ${heroReady ? "mg-hero-ready" : ""}`}
-      >
+      <div className="cg-site">
         <a className="skip-link" href="#servicios">
-          Saltar al contenido
+          Saltar a los servicios
         </a>
-        {!introDone && (
-          <div
-            className={`mg-intro ${lifting ? "mg-intro-lifting" : ""}`}
-            data-testid="intro"
-          >
-            <div className="mg-intro-lockup">
-              <p aria-hidden="true">
-                {BRAND.slice(0, letters)}
-                {cursor && <span className="mg-cursor" />}
-              </p>
-              <span className="sr-only">Bienvenida a Matrona Guía</span>
-              <span className="mg-intro-caption">
-                TU BIENESTAR EMPIEZA CONTIGO
-              </span>
+        <header className="cg-header">
+          <div className="cg-container cg-header-inner">
+            <Brand />
+            <nav className="cg-desktop-nav" aria-label="Navegación principal">
+              <a href="#servicios">Servicios</a>
+              <a href="#camila">Conoce a Camila</a>
+              <a href="#preguntas">Preguntas frecuentes</a>
+            </nav>
+            <div className="cg-header-actions">
+              <button
+                className="cg-button cg-header-book"
+                onClick={() => openBooking()}
+                aria-label="Agendar una cita"
+              >
+                <CalendarDays size={17} />
+                <span>Agendar una cita</span>
+                <ArrowUpRight size={16} />
+              </button>
+              <button
+                className="cg-menu-button"
+                ref={menuButtonRef}
+                onClick={() => setMenu((v) => !v)}
+                aria-label={menu ? "Cerrar menú" : "Abrir menú"}
+                aria-expanded={menu}
+                aria-controls="cg-mobile-menu"
+              >
+                {menu ? <X size={24} /> : <Menu size={24} />}
+              </button>
             </div>
-            <button className="mg-skip-intro" onClick={finishIntro}>
-              Saltar intro <ArrowUpRight size={15} />
-            </button>
           </div>
-        )}
-
-        <header
-          className={`mg-nav ${navOnDark && !menuOpen ? "mg-nav-light" : ""} ${menuOpen ? "mg-nav-menu" : ""}`}
-          inert={!introDone ? true : undefined}
-        >
-          <a
-            href="#inicio"
-            className="mg-logo"
-            aria-label="Matrona Guía, inicio"
-            onClick={() => setMenuOpen(false)}
-          >
-            <Flower2 size={26} strokeWidth={1.25} />
-            matrona guía<span>.</span>
-          </a>
-          <div className="flex items-center gap-4 md:gap-8">
-            <button
-              className="mg-nav-book"
-              aria-label="Agendar una cita"
-              onClick={() => openBooking()}
-            >
-              <span>Agendar una cita</span>
-              <ArrowUpRight size={17} />
-            </button>
-            <button
-              ref={menuButtonRef}
-              className="mg-menu-toggle"
-              aria-label={menuOpen ? "Cerrar menú" : "Abrir menú"}
-              aria-expanded={menuOpen}
-              aria-controls="mg-menu"
-              onClick={() => setMenuOpen((v) => !v)}
-            >
-              {menuOpen ? (
-                <X size={25} />
-              ) : (
-                <span aria-hidden="true">
-                  <i />
-                  <i />
-                </span>
-              )}
-            </button>
-          </div>
-          <span className="mg-reading-progress" aria-hidden="true" />
         </header>
-
-        {menuOpen && (
+        {menu && (
           <div
-            className="mg-menu"
-            id="mg-menu"
+            className="cg-mobile-menu"
+            id="cg-mobile-menu"
             ref={menuRef}
             role="dialog"
             aria-modal="true"
-            aria-labelledby="mg-menu-heading"
+            aria-label="Menú de navegación"
             tabIndex={-1}
           >
-            <span id="mg-menu-heading" className="mg-kicker">
-              UN ESPACIO PARA TI
-            </span>
-            <nav aria-label="Navegación principal">
-              {[
-                ["inicio", "Inicio"],
-                ["enfoque", "Mi enfoque"],
-                ["servicios", "Tu bienestar"],
-              ].map(([id, text], i) => (
-                <a href={`#${id}`} key={id} onClick={() => setMenuOpen(false)}>
-                  <small>0{i + 1}</small>
-                  {text}
-                  <ArrowUpRight />
-                </a>
-              ))}
+            <span className="cg-eyebrow">UN ESPACIO PARA TI</span>
+            <nav>
+              <a href="#servicios" onClick={() => setMenu(false)}>
+                Servicios <ArrowUpRight />
+              </a>
+              <a href="#camila" onClick={() => setMenu(false)}>
+                Conoce a Camila <ArrowUpRight />
+              </a>
+              <a href="#preguntas" onClick={() => setMenu(false)}>
+                Preguntas frecuentes <ArrowUpRight />
+              </a>
               <button onClick={() => openBooking()}>
-                <small>04</small>Agendar
-                <ArrowUpRight />
+                Agendar mi cita <ArrowUpRight />
               </button>
             </nav>
-            <a className="mg-menu-contact" href="tel:+56975898382">
+            <a href="tel:+56975898382" className="cg-menu-phone">
               +56 9 7589 8382
             </a>
           </div>
         )}
-
-        <div
-          className={`mg-cinematic ${introDone ? "mg-cinematic-settled" : ""}`}
-          ref={frameRef}
-          aria-hidden="true"
-        >
-          <div
-            className={`mg-cinematic-rise ${lifting ? "mg-cinematic-in" : ""}`}
-          >
-            <img
-              src={
-                mobile
-                  ? "/images/scroll-poster-mobile.jpg"
-                  : "/images/scroll-poster-desktop.jpg"
-              }
-              alt=""
-              fetchPriority="high"
-            />
-            <video
-              ref={videoRef}
-              src={
-                isStatic
-                  ? undefined
-                  : mobile
-                    ? "/videos/scroll-film-mobile.mp4"
-                    : "/videos/scroll-film-desktop.mp4"
-              }
-              muted
-              playsInline
-              preload={isStatic ? "none" : "auto"}
-              disablePictureInPicture
-              className={frameReady && !isStatic ? "mg-frame-ready" : ""}
-              onError={() => setVideoFailed(true)}
-            />
-            <div className="mg-cinematic-shade" />
-            <span className="mg-film-caption">
-              <Heart size={13} /> Cuidado cercano. A tu ritmo.
-            </span>
-          </div>
-        </div>
-
-        <main inert={menuOpen || !introDone ? true : undefined}>
+        <main inert={menu ? true : undefined}>
           <section
-            className="mg-hero"
             id="inicio"
-            ref={heroRef}
+            className="cg-hero cg-container"
+            aria-labelledby="cg-hero-heading"
             tabIndex={-1}
-            aria-labelledby="mg-hero-heading"
           >
-            <div className="mg-hero-halo" aria-hidden="true" />
-            <div className="mg-hero-text">
-              <div className="mg-hero-top">
-                <span className="mg-kicker">
-                  SALUD FEMENINA · RESPETO · CERCANÍA
-                </span>
-                <span className="mg-hero-edition">CONTIGO, EN CADA ETAPA.</span>
-              </div>
-              <h1 id="mg-hero-heading">
-                <span>TU BIENESTAR.</span>
-                <span>
-                  EMPIEZA EN <em>TI.</em>
-                </span>
-              </h1>
-              <div className="mg-hero-mobile-copy">
-                <p>
-                  Un espacio para escucharte,
-                  <br />
-                  entenderte y cuidar de ti.
-                </p>
-                <button
-                  className="mg-circle-link"
-                  onClick={() => openBooking()}
-                  aria-label="Agendar mi cita"
-                >
-                  <ArrowUpRight size={23} />
-                </button>
-              </div>
-            </div>
-            <div className="mg-hero-side">
-              <p>
-                Tu cuerpo tiene su historia.
+            <div className="cg-hero-copy">
+              <span className="cg-location-pill">
+                <span />
+                Ñuñoa, Santiago · Online en todo Chile
+              </span>
+              <h1 id="cg-hero-heading">
+                Tu bienestar,
                 <br />
-                Merece una guía cercana.
+                en buenas
+                <br />
+                <em>manos.</em>
+                <Flower2
+                  className="cg-title-flower"
+                  size={57}
+                  strokeWidth={1}
+                  aria-hidden="true"
+                />
+              </h1>
+              <p>
+                Un espacio para escucharte, resolver tus dudas y acompañarte en
+                el cuidado de tu salud.
               </p>
-              <button className="mg-text-link" onClick={() => openBooking()}>
-                Agendar mi cita <ArrowUpRight size={17} />
-              </button>
-            </div>
-            <a href="#enfoque" className="mg-discover">
-              <span>DESLIZA PARA DESCUBRIR</span>
-              <ArrowDown size={21} />
-            </a>
-            <span className="mg-hero-index" aria-hidden="true">
-              01 — UN NUEVO COMIENZO
-            </span>
-          </section>
-
-          <section
-            className="mg-statement-wrap"
-            id="enfoque"
-            ref={darkRef}
-            aria-labelledby="mg-statement-heading"
-          >
-            <div className="mg-statement">
-              <div className="mg-statement-content">
-                <span className="mg-kicker">MÁS QUE UNA CONSULTA</span>
-                <h2 id="mg-statement-heading">
-                  Hay preguntas que
-                  <br />
-                  merecen <em>tiempo.</em>
-                  <br />Y una persona que
-                  <br />
-                  sepa <em>escucharte.</em>
-                </h2>
-                <p>
-                  Información clara, sin juicios. Un acompañamiento que respeta
-                  tus decisiones y entiende que cada etapa se vive de una manera
-                  distinta.
-                </p>
-                <div className="mg-stats">
-                  <CountUp
-                    end={4}
-                    label="áreas para acompañarte"
-                    reduced={reduced}
-                  />
-                  <CountUp
-                    end={3}
-                    label="pasos para empezar"
-                    reduced={reduced}
-                  />
-                  <CountUp
-                    end={1}
-                    label="conversación a tu ritmo"
-                    reduced={reduced}
-                  />
-                </div>
-                <a className="mg-text-link" href="#servicios">
-                  Descubre cómo te acompaño <ArrowDownRight size={18} />
+              <div className="cg-hero-actions">
+                <button className="cg-button" onClick={() => openBooking()}>
+                  Encuentra tu atención <ArrowUpRight size={20} />
+                </button>
+                <a
+                  href={whatsapp()}
+                  className="cg-round-button"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label="Conversar por WhatsApp"
+                >
+                  <MessageCircle size={21} />
                 </a>
               </div>
-              <Flower2
-                className="mg-statement-flower"
-                strokeWidth={0.5}
-                aria-hidden="true"
+              <div className="cg-hero-professional">
+                <span className="cg-graduate">
+                  <GraduationCap size={24} strokeWidth={1.4} />
+                </span>
+                <div>
+                  <strong>{profile.fullName}</strong>
+                  <span>
+                    Licenciada con excelencia
+                    <br />
+                    {profile.university}
+                  </span>
+                </div>
+              </div>
+            </div>
+            <div className="cg-story-card">
+              <Portrait
+                index={portrait}
+                loading="eager"
+                className="cg-story-photo"
               />
+              <div className="cg-story-shade" />
+              <div className="cg-story-top">
+                <span>
+                  <Flower2 size={21} strokeWidth={1.2} />
+                  MATRONA GUÍA
+                </span>
+                {photos.some((photo) => photo.src) && (
+                  <div
+                    className="cg-story-progress"
+                    role="group"
+                    aria-label="Fotografías de Camila"
+                  >
+                    {photos.map((photo, i) => (
+                      <button
+                        key={photo.label}
+                        aria-label={`Ver foto ${i + 1}: ${photo.label}`}
+                        aria-pressed={portrait === i}
+                        onClick={() => setPortrait(i)}
+                      />
+                    ))}
+                  </div>
+                )}
+              </div>
+              <div className="cg-story-focus" aria-hidden="true">
+                <i />
+                <i />
+                <i />
+                <i />
+              </div>
+              <div className="cg-story-bottom">
+                <span className="cg-story-tag">
+                  <Heart size={13} /> SALUD CON CERCANÍA
+                </span>
+                <h2>
+                  {photos[portrait].label.split(" ").slice(0, 2).join(" ")}
+                  <br />
+                  {photos[portrait].label.split(" ").slice(2).join(" ")}
+                  <span>.</span>
+                </h2>
+                <a href="#servicios" className="cg-story-link">
+                  <span className="cg-story-arrow">
+                    <ArrowDownRight size={23} />
+                  </span>
+                  <span>Descubre cómo te acompaño</span>
+                  <ArrowDown size={18} />
+                </a>
+              </div>
             </div>
           </section>
 
           <section
-            className="mg-gallery"
-            id="momentos"
-            ref={galleryRef}
-            aria-labelledby="mg-gallery-heading"
+            className="cg-highlights cg-container"
+            aria-label="Modalidades y atención"
           >
-            <div className="mg-ticker" aria-hidden="true">
+            <div>
+              <MapPin size={21} strokeWidth={1.3} />
               <span>
-                matrona guía. &nbsp; matrona guía. &nbsp; matrona guía. &nbsp;
-                matrona guía.
+                <strong>Presencial en Ñuñoa</strong>
+                <small>Santiago, Chile</small>
               </span>
             </div>
-            <div className="mg-gallery-content">
-              <div className="mg-gallery-heading">
-                <div>
-                  <span className="mg-kicker">CADA PARTE DE TI IMPORTA</span>
-                  <h2 id="mg-gallery-heading">
-                    A tu manera.
-                    <br className="mg-mobile-break" /> <em>A tu ritmo.</em>
-                  </h2>
-                </div>
-                <button
-                  className="mg-gallery-pause"
-                  onClick={() => setGalleryPaused((p) => !p)}
-                  disabled={reduced}
-                  aria-pressed={galleryPaused || reduced}
-                >
-                  {galleryPaused || reduced ? (
-                    <Play size={15} />
-                  ) : (
-                    <Pause size={15} />
-                  )}
-                  {reduced
-                    ? "Movimiento reducido"
-                    : galleryPaused
-                      ? "Activar movimiento"
-                      : "Pausar movimiento"}
-                </button>
-              </div>
-              <div
-                className="mg-gallery-row"
-                role="group"
-                aria-label="Explora los momentos de tu cuidado"
-              >
-                {gallery.map((item, index) => (
-                  <button
-                    key={item.name}
-                    className={`mg-gallery-item ${index === activeGallery ? "mg-gallery-active" : ""}`}
-                    ref={(n) => {
-                      galleryButtons.current[index] = n;
-                    }}
-                    aria-label={`Explorar ${item.name.toLowerCase()}`}
-                    aria-pressed={index === activeGallery}
-                    aria-controls="mg-gallery-description"
-                    onMouseEnter={() => {
-                      if (matchMedia("(hover: hover)").matches)
-                        setActiveGallery(index);
-                    }}
-                    onFocus={() => setActiveGallery(index)}
-                    onClick={() => setActiveGallery(index)}
-                    onKeyDown={(e) => navigateGallery(e, index)}
-                  >
-                    <img src={item.poster} alt="" loading="lazy" />
-                    <video
-                      ref={(n) => {
-                        galleryVideos.current[index] = n;
-                      }}
-                      src={galleryReady && !reduced ? item.video : undefined}
-                      poster={item.poster}
-                      muted
-                      loop
-                      playsInline
-                      preload="none"
-                      aria-hidden="true"
-                      onError={(e) => {
-                        e.currentTarget.style.opacity = "0";
-                      }}
-                    />
-                    <span className="mg-gallery-scrim" />
-                    <span className="mg-gallery-number">0{index + 1}</span>
-                    <span className="mg-gallery-label">
-                      {item.name}
-                      <ArrowUpRight size={18} />
-                    </span>
-                  </button>
-                ))}
-              </div>
-              <div
-                className="mg-gallery-description"
-                id="mg-gallery-description"
-                aria-live="polite"
-              >
-                <div>
-                  <h3>{gallery[activeGallery].line}</h3>
-                  <p>{gallery[activeGallery].note}</p>
-                </div>
-                <button
-                  className="mg-text-link"
-                  onClick={() => openBooking(gallery[activeGallery].service)}
-                >
-                  Conversemos <ArrowUpRight size={18} />
-                </button>
-              </div>
+            <div>
+              <Globe2 size={21} strokeWidth={1.3} />
+              <span>
+                <strong>Online para todo Chile</strong>
+                <small>Coordinación directa por WhatsApp</small>
+              </span>
+            </div>
+            <div>
+              <Heart size={21} strokeWidth={1.3} />
+              <span>
+                <strong>Tu salud, a tu ritmo</strong>
+                <small>Atención con respeto y cercanía</small>
+              </span>
             </div>
           </section>
 
           <section
-            className="mg-care mg-space"
+            className="cg-services cg-container"
             id="servicios"
-            aria-labelledby="mg-care-heading"
+            aria-labelledby="cg-services-heading"
           >
-            <div className="mg-section-heading mg-reveal">
+            <div className="cg-section-heading cg-reveal">
               <div>
-                <span className="mg-kicker">ACOMPAÑAMIENTO A TU MEDIDA</span>
-                <h2 id="mg-care-heading">
-                  Cada etapa.
+                <span className="cg-eyebrow">ELIGE CÓMO CUIDARTE</span>
+                <h2 id="cg-services-heading">
+                  Un espacio para
                   <br />
-                  <em>Tu propia historia.</em>
+                  <em>cada necesidad.</em>
                 </h2>
               </div>
-              <p>
-                Encuentra un espacio para conversar,
-                <br />
-                entender y decidir con confianza.
-              </p>
-            </div>
-            <div className="mg-care-layout mg-reveal">
-              <div
-                className="mg-care-menu"
-                role="group"
-                aria-label="Elegir área de acompañamiento"
+              <button
+                className={`cg-search-toggle ${searchOpen ? "cg-search-active" : ""}`}
+                aria-label={
+                  searchOpen
+                    ? "Cerrar búsqueda de servicios"
+                    : "Buscar un servicio"
+                }
+                aria-expanded={searchOpen}
+                aria-controls="cg-search-panel"
+                onClick={() => {
+                  setSearchOpen((v) => !v);
+                  setQuery("");
+                }}
               >
-                {services.map((service, i) => (
+                {searchOpen ? <X size={22} /> : <Search size={24} />}
+              </button>
+            </div>
+            <div className="cg-service-controls">
+              <div
+                className="cg-filter-pills"
+                role="group"
+                aria-label="Filtrar servicios por categoría"
+              >
+                {categories.map(({ id, label, Icon }) => (
                   <button
-                    key={service.id}
-                    aria-pressed={activeService === service.id}
-                    aria-controls="mg-care-panel"
-                    onClick={() => setActiveService(service.id)}
+                    key={id}
+                    className={category === id ? "cg-filter-active" : ""}
+                    aria-pressed={category === id}
+                    onClick={() => setCategory(id)}
                   >
-                    <small>0{i + 1}</small>
-                    <span>{service.title}</span>
-                    <ArrowUpRight size={20} />
+                    <Icon size={18} strokeWidth={1.5} />
+                    {label}
                   </button>
                 ))}
               </div>
-              <div
-                className="mg-care-panel"
-                id="mg-care-panel"
-                role="region"
-                aria-label={selectedService.title}
-              >
-                <selectedService.Icon size={35} strokeWidth={1.15} />
-                <h3>{selectedService.title}</h3>
-                <p>{selectedService.description}</p>
-                <ul>
-                  {selectedService.points.map((point) => (
-                    <li key={point}>
-                      <Check size={16} />
-                      {point}
-                    </li>
-                  ))}
-                </ul>
-                <button
-                  className="mg-button"
-                  onClick={() => openBooking(selectedService.id)}
-                >
-                  Consultar por esta atención <ArrowUpRight size={18} />
-                </button>
-              </div>
+              <span className="cg-price-unit">VALORES EN PESOS CHILENOS</span>
             </div>
-          </section>
-
-          <section
-            className="mg-journey mg-space"
-            id="como-agendar"
-            aria-labelledby="mg-journey-heading"
-          >
-            <div className="mg-section-heading mg-reveal">
+            <div
+              id="cg-search-panel"
+              hidden={!searchOpen}
+              className="cg-search-panel"
+            >
+              <label htmlFor="cg-search">¿Qué atención estás buscando?</label>
               <div>
-                <span className="mg-kicker">EMPEZAR PUEDE SER SIMPLE</span>
-                <h2 id="mg-journey-heading">
-                  Un momento.
-                  <br />
-                  <em>Solo para ti.</em>
-                </h2>
+                <Search size={19} />
+                <input
+                  id="cg-search"
+                  ref={searchRef}
+                  type="search"
+                  value={query}
+                  onChange={(e) => setQuery(e.target.value)}
+                  placeholder="Por ejemplo: PAP, DIU o implante"
+                  autoComplete="off"
+                />
               </div>
-              <p>
-                Tu cita se coordina personalmente.
-                <br />
-                Sin pagos online, con atención cercana.
-              </p>
             </div>
-            <div className="mg-steps mg-reveal">
-              {[
-                {
-                  n: "01",
-                  Icon: Heart,
-                  title: "Cuéntame qué necesitas",
-                  text: "Elige el motivo de tu consulta o solicita orientación.",
-                },
-                {
-                  n: "02",
-                  Icon: CalendarDays,
-                  title: "Encuentra tu momento",
-                  text: "Indica una fecha y una franja horaria que te acomoden.",
-                },
-                {
-                  n: "03",
-                  Icon: MessageCircle,
-                  title: "Coordinemos juntas",
-                  text: "Envía tu solicitud por WhatsApp y confirma los detalles.",
-                },
-              ].map(({ n, Icon, title, text }) => (
-                <div key={n}>
-                  <div className="mg-step-top">
-                    <span>{n}</span>
-                    <Icon size={25} strokeWidth={1.2} />
+            <span className="sr-only" role="status">
+              {filtered.length}{" "}
+              {filtered.length === 1
+                ? "servicio encontrado"
+                : "servicios encontrados"}
+            </span>
+            <div className="cg-service-grid">
+              {filtered.map((service, i) => (
+                <article
+                  className={`cg-service-card cg-service-${service.category}`}
+                  key={service.id}
+                  aria-labelledby={`service-${service.id}`}
+                >
+                  <div className="cg-service-art" aria-hidden="true">
+                    <Portrait
+                      index={
+                        service.category === "examenes"
+                          ? 2
+                          : service.category === "inyectables"
+                            ? 1
+                            : services.findIndex(
+                                (item) => item.id === service.id,
+                              ) % 3
+                      }
+                      className="cg-service-photo"
+                    />
                   </div>
-                  <h3>{title}</h3>
-                  <p>{text}</p>
-                </div>
+                  <div className="cg-service-overlay" />
+                  <div className="cg-service-top">
+                    <span>
+                      {categories.find((c) => c.id === service.category)?.label}
+                    </span>
+                    <button
+                      className="cg-service-info"
+                      onClick={() => setDetail(service)}
+                      aria-label={`Ver detalles de ${service.title}`}
+                    >
+                      <Info size={22} strokeWidth={1.6} />
+                    </button>
+                  </div>
+                  <div className="cg-service-main">
+                    <span className="cg-service-mode">
+                      <MapPin size={12} /> PRESENCIAL
+                    </span>
+                    <h3 id={`service-${service.id}`}>{service.title}</h3>
+                    <p>{service.priceNote}</p>
+                  </div>
+                  <div className="cg-service-bottom">
+                    <div className="cg-service-price">
+                      <strong>{formatPriceCLP(service.price)}</strong>
+                      <span>CLP</span>
+                    </div>
+                    <div className="cg-service-actions">
+                      <a
+                        href={whatsapp(
+                          `¡Hola, Camila! Quisiera consultar por ${service.title} (${formatPriceCLP(service.price)} CLP). ${service.priceNote}`,
+                        )}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="cg-card-chat"
+                        aria-label={`Consultar por ${service.title} en WhatsApp`}
+                      >
+                        <MessageCircle size={21} />
+                      </a>
+                      <button
+                        data-book={service.id}
+                        className="cg-card-book"
+                        onClick={() => openBooking(service.id)}
+                        aria-label={`Agendar ${service.title}`}
+                      >
+                        <CalendarDays size={17} />
+                        Agendar atención
+                        <ArrowUpRight size={17} />
+                      </button>
+                    </div>
+                  </div>
+                </article>
               ))}
             </div>
-            <button className="mg-button" onClick={() => openBooking()}>
-              Agendar mi cita <ArrowUpRight size={18} />
-            </button>
+            {filtered.length === 0 && (
+              <div className="cg-no-results">
+                <Search size={30} />
+                <h3>Busquemos tu atención</h3>
+                <p>No hay servicios que coincidan con esta búsqueda.</p>
+                <button
+                  className="cg-button"
+                  onClick={() => {
+                    setQuery("");
+                    setCategory("todos");
+                  }}
+                >
+                  Ver todos los servicios <ArrowRight size={17} />
+                </button>
+              </div>
+            )}
+            <div className="cg-online-strip">
+              <span className="cg-online-icon">
+                <Globe2 size={26} strokeWidth={1.3} />
+              </span>
+              <div>
+                <h3>¿Buscas atención online?</h3>
+                <p>
+                  Camila también atiende online para todo Chile. Conversemos
+                  sobre lo que necesitas.
+                </p>
+              </div>
+              <a
+                href={whatsapp(
+                  "¡Hola, Camila! Me gustaría consultar por la atención online, su valor y cómo agendar.",
+                )}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                Consultar por atención online <ArrowUpRight size={18} />
+              </a>
+            </div>
           </section>
 
           <section
-            className="mg-faq mg-space"
-            id="preguntas"
-            aria-labelledby="mg-faq-heading"
+            className="cg-about cg-container"
+            id="camila"
+            aria-labelledby="cg-about-heading"
           >
-            <div className="mg-faq-intro mg-reveal">
-              <span className="mg-kicker">UN POCO MÁS DE TRANQUILIDAD</span>
-              <h2 id="mg-faq-heading">
+            <div className="cg-about-photo-wrap cg-reveal">
+              <Portrait index={2} className="cg-about-photo" />
+              <span className="cg-about-photo-tag">
+                <Flower2 size={18} />
+                MATRONA GUÍA
+              </span>
+              <div className="cg-about-badge">
+                <GraduationCap size={25} strokeWidth={1.3} />
+                <span>
+                  Formación con
+                  <br />
+                  <strong>excelencia.</strong>
+                </span>
+              </div>
+            </div>
+            <div className="cg-about-copy cg-reveal">
+              <span className="cg-eyebrow">CONOCE A TU MATRONA</span>
+              <h2 id="cg-about-heading">
+                Hola, soy
+                <br />
+                <em>Camila Rojas.</em>
+              </h2>
+              <p className="cg-about-lead">{profile.education}</p>
+              <p>
+                En Matrona Guía encontrarás un espacio para conversar con
+                confianza sobre tu salud, con información clara y respeto por
+                tus decisiones.
+              </p>
+              <div className="cg-about-values">
+                <span>
+                  <Heart size={19} />
+                  Escucha sin juicios
+                </span>
+                <span>
+                  <ShieldCheck size={19} />
+                  Información para decidir
+                </span>
+                <span>
+                  <Flower2 size={19} />
+                  Cercanía en cada etapa
+                </span>
+              </div>
+              <a
+                href={profile.instagram}
+                className="cg-about-social"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                <Instagram size={19} />
+                <span>
+                  Conóceme en <strong>@matronaguia</strong>
+                </span>
+                <ArrowUpRight size={18} />
+              </a>
+            </div>
+          </section>
+
+          <section className="cg-how-section">
+            <div className="cg-container">
+              <div className="cg-section-heading cg-reveal">
+                <div>
+                  <span className="cg-eyebrow">TU PRÓXIMO PASO</span>
+                  <h2>
+                    Agendar puede
+                    <br />
+                    ser <em>así de simple.</em>
+                  </h2>
+                </div>
+                <p>
+                  Coordinación personal,
+                  <br />
+                  desde el primer mensaje.
+                </p>
+              </div>
+              <div className="cg-how-grid cg-reveal">
+                {[
+                  {
+                    n: "01",
+                    Icon: Flower2,
+                    title: "Elige tu atención",
+                    text: "Revisa los servicios y sus valores. Si tienes dudas, puedes pedir orientación.",
+                  },
+                  {
+                    n: "02",
+                    Icon: CalendarDays,
+                    title: "Propón tu momento",
+                    text: "Indica una fecha y un horario preferidos en la solicitud de cita.",
+                  },
+                  {
+                    n: "03",
+                    Icon: MessageCircle,
+                    title: "Confirma con Camila",
+                    text: "Envía el mensaje por WhatsApp y coordina los detalles de tu atención.",
+                  },
+                ].map(({ n, Icon, title, text }) => (
+                  <div key={n}>
+                    <div className="cg-how-top">
+                      <span>{n}</span>
+                      <Icon size={25} strokeWidth={1.2} />
+                    </div>
+                    <h3>{title}</h3>
+                    <p>{text}</p>
+                  </div>
+                ))}
+              </div>
+              <button className="cg-button" onClick={() => openBooking()}>
+                Agendar una cita <ArrowUpRight size={18} />
+              </button>
+            </div>
+          </section>
+
+          <section
+            className="cg-faq cg-container"
+            id="preguntas"
+            aria-labelledby="cg-faq-heading"
+          >
+            <div className="cg-faq-heading cg-reveal">
+              <span className="cg-eyebrow">RESOLVAMOS TUS DUDAS</span>
+              <h2 id="cg-faq-heading">
                 Preguntar también
                 <br />
                 es <em>cuidarte.</em>
               </h2>
               <a
-                className="mg-text-link"
+                className="cg-text-link"
                 href={whatsapp()}
                 target="_blank"
                 rel="noopener noreferrer"
               >
-                Hacer otra pregunta <ArrowUpRight size={17} />
+                Hacer otra pregunta <ArrowUpRight size={18} />
               </a>
             </div>
-            <div className="mg-faq-list mg-reveal">
-              {faqs.map(([q, a], i) => (
-                <div className="mg-faq-item" key={q}>
+            <div className="cg-faq-list cg-reveal">
+              {faqs.map(([question, answer], i) => (
+                <div className="cg-faq-item" key={question}>
                   <h3>
                     <button
-                      aria-expanded={openFaq === i}
-                      aria-controls={`mg-faq-${i}`}
-                      onClick={() => setOpenFaq(openFaq === i ? null : i)}
+                      aria-expanded={faq === i}
+                      aria-controls={`cg-faq-${i}`}
+                      onClick={() => setFaq(faq === i ? null : i)}
                     >
-                      {q}
+                      {question}
                       <Plus
                         size={19}
-                        className={openFaq === i ? "mg-rotated" : ""}
+                        className={faq === i ? "cg-plus-open" : ""}
                       />
                     </button>
                   </h3>
-                  <div id={`mg-faq-${i}`} hidden={openFaq !== i}>
-                    <p>{a}</p>
+                  <div id={`cg-faq-${i}`} hidden={faq !== i}>
+                    <p>{answer}</p>
                   </div>
                 </div>
               ))}
@@ -1022,79 +800,144 @@ export default function App() {
           </section>
 
           <section
-            className="mg-final"
+            className="cg-contact cg-container"
             id="contacto"
-            aria-labelledby="mg-final-heading"
+            aria-labelledby="cg-contact-heading"
           >
-            <span className="mg-kicker">ESTE ESPACIO TAMBIÉN ES TUYO</span>
-            <h2 id="mg-final-heading">
-              Empecemos con
-              <br />
-              una <em>conversación.</em>
-            </h2>
-            <button
-              className="mg-final-button"
-              onClick={() => openBooking()}
-              aria-label="Agendar una cita con Matrona Guía"
-            >
-              <ArrowUpRight size={39} />
-            </button>
-            <div className="mg-final-bottom">
-              <p>
-                Tu bienestar merece tiempo,
-                <br />
-                escucha y una guía cercana.
-              </p>
-              <a href={whatsapp()} target="_blank" rel="noopener noreferrer">
-                Escribir por WhatsApp <ArrowUpRight size={18} />
-              </a>
+            <div className="cg-contact-card">
+              <div className="cg-contact-decoration" aria-hidden="true">
+                <Flower2 strokeWidth={0.5} />
+              </div>
+              <div className="cg-contact-top">
+                <span className="cg-contact-avatar">
+                  <Portrait />
+                </span>
+                <div>
+                  <strong>{profile.fullName}</strong>
+                  <span>Ñuñoa · Online para todo Chile</span>
+                </div>
+                <span className="cg-contact-label">CONVERSEMOS</span>
+              </div>
+              <div className="cg-contact-body">
+                <div>
+                  <span className="cg-eyebrow">AQUÍ EMPIEZA TU CUIDADO</span>
+                  <h2>
+                    Una conversación.
+                    <br />
+                    <em>Un momento para ti.</em>
+                  </h2>
+                  <p>
+                    Escríbeme para consultar por una atención o coordinemos
+                    juntas tu próxima cita.
+                  </p>
+                </div>
+                <div className="cg-contact-actions">
+                  <button
+                    className="cg-button cg-button-light"
+                    onClick={() => openBooking()}
+                  >
+                    <CalendarDays size={19} />
+                    Agendar mi cita
+                    <ArrowUpRight size={19} />
+                  </button>
+                  <a
+                    href={whatsapp()}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    <MessageCircle size={19} />
+                    Escribir por WhatsApp
+                    <ArrowUpRight size={17} />
+                  </a>
+                </div>
+              </div>
             </div>
-            <Flower2
-              className="mg-final-flower"
-              strokeWidth={0.5}
-              aria-hidden="true"
-            />
           </section>
         </main>
-
         <footer
-          className="mg-footer mg-space"
-          inert={menuOpen || !introDone ? true : undefined}
+          className="cg-footer cg-container"
+          inert={menu ? true : undefined}
         >
-          <div className="mg-footer-top">
-            <a
-              href="#inicio"
-              className="mg-logo"
-              aria-label="Matrona Guía, volver al inicio"
-            >
-              <Flower2 size={26} strokeWidth={1.25} />
-              matrona guía<span>.</span>
-            </a>
-            <a href="tel:+56975898382">+56 9 7589 8382</a>
-            <div className="mg-socials">
+          <div className="cg-footer-top">
+            <Brand />
+            <p>Tu bienestar, con una guía cercana.</p>
+            <div>
               <a
-                href="https://www.instagram.com/matronaguia/"
+                href={profile.instagram}
                 target="_blank"
                 rel="noopener noreferrer"
               >
-                Instagram <Instagram size={17} />
+                Instagram
+                <Instagram size={17} />
               </a>
               <a
-                href="https://www.tiktok.com/@matronaguia"
+                href={profile.tiktok}
                 target="_blank"
                 rel="noopener noreferrer"
               >
-                TikTok <ArrowUpRight size={17} />
+                TikTok
+                <ArrowUpRight size={17} />
               </a>
             </div>
           </div>
-          <div className="mg-footer-bottom">
-            <span>© {new Date().getFullYear()} Matrona Guía.</span>
-            <span>Contigo, en cada etapa.</span>
-            <span>La información no reemplaza una evaluación profesional.</span>
+          <div className="cg-footer-bottom">
+            <span>
+              © {new Date().getFullYear()} Matrona Guía · Camila Rojas
+            </span>
+            <a href="tel:+56975898382">+56 9 7589 8382</a>
+            <span>Ñuñoa, Santiago · Online para todo Chile</span>
           </div>
         </footer>
+        {scrollTop && (
+          <button
+            className="cg-back-top"
+            aria-label="Volver al inicio"
+            onClick={() => {
+              document.getElementById("inicio")?.scrollIntoView({
+                behavior: matchMedia("(prefers-reduced-motion: reduce)").matches
+                  ? "instant"
+                  : "smooth",
+              });
+              document.getElementById("inicio")?.focus({ preventScroll: true });
+            }}
+          >
+            <ArrowUpRight size={19} />
+          </button>
+        )}
       </div>
+      {detail && (
+        <Modal
+          onClose={closeDetail}
+          title={detail.title}
+          className="service-modal cg-detail-modal"
+        >
+          <span className="detail-icon">
+            <detail.Icon size={32} strokeWidth={1.3} />
+          </span>
+          <span className="eyebrow">PROCEDIMIENTOS Y EXÁMENES</span>
+          <h2>{detail.title}</h2>
+          <span className="cg-detail-price">
+            {formatPriceCLP(detail.price)} <small>CLP</small>
+          </span>
+          <p className="modal-description">{detail.detail}</p>
+          <ul className="detail-points">
+            {detail.points.map((point) => (
+              <li key={point}>
+                <CircleCheck size={17} />
+                {point}
+              </li>
+            ))}
+          </ul>
+          <button
+            className="button full-width"
+            onClick={() => openBooking(detail.id)}
+          >
+            Agendar esta atención
+            <ArrowUpRight size={18} />
+          </button>
+          <p className="modal-note">Atención presencial en Ñuñoa, Santiago.</p>
+        </Modal>
+      )}
       {booking && (
         <Booking initialService={booking.service} onClose={closeBooking} />
       )}
