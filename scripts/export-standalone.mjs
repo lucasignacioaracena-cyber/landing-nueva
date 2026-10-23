@@ -54,6 +54,8 @@ for (const match of [
     "images/scroll-poster-mobile.jpg",
     "videos/scroll-film-desktop.mp4",
     "videos/scroll-film-mobile.mp4",
+    ...Array.from({ length: 5 }, (_, i) => `videos/gallery-${i + 1}.mp4`),
+    ...Array.from({ length: 5 }, (_, i) => `images/gallery-${i + 1}.jpg`),
   ];
   for (const asset of bundledAssets) {
     if (!javascript.includes(`/${asset}`)) continue;
