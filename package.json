@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "node scripts/start.mjs",
     "build": "tsc --noEmit && vite build",
+    "build:pages": "npm run build -- --base=./ --outDir=dist-pages && node scripts/prepare-pages.mjs",
     "preview": "vite preview --host 0.0.0.0",
     "export:html": "npm run build && node scripts/export-standalone.mjs",
     "typecheck": "tsc --noEmit",

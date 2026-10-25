@@ -70,3 +70,13 @@ npm run export:html
 Genera `exports/Matrona-Guia.html` con fuentes, videos, imágenes y PDFs incluidos. Se abre sin instalar dependencias ni ejecutar un servidor. En esta versión descargable los formularios preparan mensajes de WhatsApp y lo indican expresamente; no afirman guardar en una base de datos que el archivo no tiene. El almacenamiento SQLite funciona al ejecutar la aplicación con su API.
 
 Los enlaces de WhatsApp, mapa, correo y redes requieren conexión. La descarga no constituye un alojamiento público de la web.
+
+## Publicación para abrir desde el celular
+
+```sh
+npm run build:pages
+```
+
+Genera `dist-pages/` con rutas relativas, videos, fuentes, imágenes y guías. Esta versión para alojamiento estático utiliza los formularios de WhatsApp y no depende de la API local. No publica mensajes ni experiencias automáticamente.
+
+Los archivos compilados se publican en la raíz de la rama `gh-pages`. El propietario debe activar una sola vez [Settings → Pages](https://github.com/lucasignacioaracena-cyber/landing-nueva/settings/pages): seleccionar **Deploy from a branch**, rama **gh-pages**, carpeta **/(root)** y **Save**. GitHub genera el enlace público al terminar el despliegue. Hasta que ese despliegue se confirme, una descarga o una rama de GitHub no es una web publicada.
