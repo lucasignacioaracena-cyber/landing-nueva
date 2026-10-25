@@ -73,10 +73,12 @@ Los enlaces de WhatsApp, mapa, correo y redes requieren conexión. La descarga n
 
 ## Publicación para abrir desde el celular
 
+Web publicada: **https://lucasignacioaracena-cyber.github.io/landing-nueva/**.
+
 ```sh
 npm run build:pages
 ```
 
 Genera `dist-pages/` con rutas relativas, videos, fuentes, imágenes y guías. Esta versión para alojamiento estático utiliza los formularios de WhatsApp y no depende de la API local. No publica mensajes ni experiencias automáticamente.
 
-Los archivos compilados se publican en la raíz de la rama `gh-pages`. El propietario debe activar una sola vez [Settings → Pages](https://github.com/lucasignacioaracena-cyber/landing-nueva/settings/pages): seleccionar **Deploy from a branch**, rama **gh-pages**, carpeta **/(root)** y **Save**. GitHub genera el enlace público al terminar el despliegue. Hasta que ese despliegue se confirme, una descarga o una rama de GitHub no es una web publicada.
+Los archivos compilados se publican en la raíz de la rama `gh-pages`. GitHub activó automáticamente el alojamiento al recibir esa rama. Para configurar de nuevo la fuente: [Settings → Pages](https://github.com/lucasignacioaracena-cyber/landing-nueva/settings/pages) → **Deploy from a branch** → **gh-pages** → **/(root)** → **Save**. Las actualizaciones deben conservar esa rama y publicar el contenido de `dist-pages/` en su raíz. El despliegue inicial se puede revisar en [Pages build and deployment](https://github.com/lucasignacioaracena-cyber/landing-nueva/actions/runs/40160637405).
