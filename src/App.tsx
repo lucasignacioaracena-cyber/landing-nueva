@@ -9,6 +9,8 @@ import {
   ChevronLeft,
   ChevronRight,
   CircleCheck,
+  Clock3,
+  Mail,
   Flower2,
   Globe2,
   GraduationCap,
@@ -26,15 +28,21 @@ import {
 } from "lucide-react";
 import Booking, { Modal } from "./Booking";
 import {
-  categories,
+  catalogCategories as categories,
+  catalogServices,
+  bookingServices,
+  priceGroups,
   formatPriceCLP,
   profile,
   services,
   whatsapp,
 } from "./content";
-import { photos } from "./photos";
+import { photos, serviceArtwork } from "./photos";
+import HeroSection from "./HeroSection";
+import Education from "./Education";
+import { PatientExperiences, ContactForm } from "./CommunityForms";
 
-type Service = (typeof services)[number];
+type Service = (typeof catalogServices)[number];
 const normalize = (text: string) =>
   text
     .normalize("NFD")
@@ -42,24 +50,32 @@ const normalize = (text: string) =>
     .toLowerCase();
 const faqs = [
   [
-    "¿Dónde atiende Camila?",
-    "La atención presencial es en Ñuñoa, Santiago. También ofrece atención online para todo Chile. Escríbele por WhatsApp para coordinar la modalidad y los detalles de tu consulta.",
+    "¿Cómo agendo y confirmo mi reserva?",
+    "Elige tu atención y envía la solicitud por WhatsApp para coordinar disponibilidad. Las atenciones online se pagan por su valor completo. Para las presenciales se solicita un abono de $10.000 por transferencia para reservar tu hora. Los datos de pago se coordinan directamente con Camila.",
   ],
   [
-    "¿Qué incluye la toma de PAP?",
-    "El valor de $20.000 incluye el kit de muestra y la entrega de resultados. Puedes coordinar tu atención presencial desde el botón para agendar.",
+    "¿Dónde consulto los valores y qué incluyen?",
+    "En la sección Valores encontrarás las atenciones online, presenciales y los procedimientos. La toma de PAP de $20.000 incluye kit y entrega de resultados. Las inserciones no incluyen el dispositivo y el inyectable de $15.000 corresponde solo a su administración.",
   ],
   [
-    "¿Los valores de inserción incluyen el dispositivo?",
-    "No. Los $40.000 de inserción de Implanon o Levoplant y los $40.000 de inserción de DIU corresponden al procedimiento. El dispositivo se paga aparte.",
+    "¿Cómo es la atención online?",
+    "Camila atiende por videollamada y chat para todo Chile. Las consultas tienen una duración aproximada de 45 minutos. Coordina el formato y el horario por WhatsApp antes de confirmar.",
   ],
   [
-    "¿Qué incluyen los $15.000 del inyectable?",
-    "El valor corresponde solo a la administración del inyectable intramuscular o vacuna. El medicamento no está incluido.",
+    "¿Qué puedo llevar a la consulta?",
+    "Puedes preparar tus preguntas y llevar tus exámenes previos si los tienes. Para un procedimiento, consulta antes con Camila qué necesitas llevar y cómo prepararte.",
   ],
   [
-    "¿Cómo se confirma mi cita?",
-    "Elige tu atención y una fecha y horario preferidos. Al terminar se abrirá WhatsApp con tu solicitud preparada. Envía el mensaje para coordinar y confirmar personalmente la disponibilidad.",
+    "¿Cómo cancelo o reagendo una atención?",
+    "Escribe al mismo WhatsApp con un mínimo de 2 días hábiles de anticipación para coordinar una cancelación o un cambio de hora.",
+  ],
+  [
+    "¿Desde qué edad atiende Camila?",
+    "Camila atiende desde los 10 años, con un acompañamiento acorde a cada etapa. Puedes consultar los detalles de la atención al coordinar tu hora.",
+  ],
+  [
+    "¿Dónde y cuándo es la atención presencial?",
+    "La consulta está en Carmen Covarrubias 32, Ñuñoa, Santiago. La atención presencial es los viernes de 10:00 a 16:00 horas y tiene una duración aproximada de una hora. La disponibilidad se confirma personalmente.",
   ],
 ];
 
@@ -120,15 +136,30 @@ export default function App() {
   const [portrait, setPortrait] = useState(0);
   const [faq, setFaq] = useState<number | null>(null);
   const [scrollTop, setScrollTop] = useState(false);
+  const [pastHero, setPastHero] = useState(false);
+  const [mapOpen, setMapOpen] = useState(false);
+  const [priceMode, setPriceMode] = useState("presencial");
+  const selectedPriceGroup =
+    priceGroups.find((group) => group.id === priceMode) || priceGroups[0];
+  const mapUrl =
+    "https://www.google.com/maps/search/?api=1&query=" +
+    encodeURIComponent("Carmen Covarrubias 32, Ñuñoa, Santiago, Chile");
   const searchRef = useRef<HTMLInputElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);
   const menuButtonRef = useRef<HTMLButtonElement>(null);
-  const filtered = services.filter(
+  const searchAliases: Record<string, string> = {
+    "consultas-ginecologicas": "PAP Papanicolaou control ginecológico",
+    "metodos-larga-duracion":
+      "Implanon Levoplant DIU cobre Silverflex implante",
+    inyecciones: "inyectable IM vacuna",
+    "revision-examenes": "orden exámenes recetas",
+  };
+  const filtered = catalogServices.filter(
     (s) =>
       (category === "todos" || s.category === category) &&
-      normalize(`${s.title} ${s.description} ${s.detail}`).includes(
-        normalize(query.trim()),
-      ),
+      normalize(
+        `${s.title} ${s.description} ${searchAliases[s.id] || ""}`,
+      ).includes(normalize(query.trim())),
   );
 
   const closeBooking = useCallback(() => setBooking(null), []);
@@ -162,10 +193,46 @@ export default function App() {
   }, []);
 
   useEffect(() => {
-    const update = () => setScrollTop(window.scrollY > 650);
-    window.addEventListener("scroll", update, { passive: true });
+    const motion = matchMedia("(prefers-reduced-motion: reduce)");
+    let frame = 0;
+    const update = () => {
+      frame = 0;
+      setScrollTop(window.scrollY > 650);
+      const root = document.documentElement;
+      root.style.setProperty(
+        "--cg-progress",
+        String(
+          Math.min(1, scrollY / Math.max(1, root.scrollHeight - innerHeight)),
+        ),
+      );
+      const hero = document.getElementById("inicio");
+      setPastHero(Boolean(hero && hero.getBoundingClientRect().bottom <= 0));
+      const progress = Math.min(
+        1,
+        Math.max(0, -(hero?.getBoundingClientRect().top || 0) / innerHeight),
+      );
+      root.style.setProperty(
+        "--cg-photo-shift",
+        motion.matches ? "0px" : `${progress * 12}px`,
+      );
+      root.style.setProperty(
+        "--cg-seal-turn",
+        motion.matches ? "0deg" : `${-12 + progress * 32}deg`,
+      );
+    };
+    const schedule = () => {
+      if (!frame) frame = requestAnimationFrame(update);
+    };
+    window.addEventListener("scroll", schedule, { passive: true });
+    window.addEventListener("resize", schedule, { passive: true });
+    motion.addEventListener("change", schedule);
     update();
-    return () => window.removeEventListener("scroll", update);
+    return () => {
+      cancelAnimationFrame(frame);
+      window.removeEventListener("scroll", schedule);
+      window.removeEventListener("resize", schedule);
+      motion.removeEventListener("change", schedule);
+    };
   }, []);
 
   useEffect(() => {
@@ -249,179 +316,11 @@ export default function App() {
         <a className="skip-link" href="#servicios">
           Saltar a los servicios
         </a>
-        <header className="cg-header">
-          <div className="cg-container cg-header-inner">
-            <Brand />
-            <nav className="cg-desktop-nav" aria-label="Navegación principal">
-              <a href="#servicios">Servicios</a>
-              <a href="#camila">Conoce a Camila</a>
-              <a href="#preguntas">Preguntas frecuentes</a>
-            </nav>
-            <div className="cg-header-actions">
-              <button
-                className="cg-button cg-header-book"
-                onClick={() => openBooking()}
-                aria-label="Agendar una cita"
-              >
-                <CalendarDays size={17} />
-                <span>Agendar una cita</span>
-                <ArrowUpRight size={16} />
-              </button>
-              <button
-                className="cg-menu-button"
-                ref={menuButtonRef}
-                onClick={() => setMenu((v) => !v)}
-                aria-label={menu ? "Cerrar menú" : "Abrir menú"}
-                aria-expanded={menu}
-                aria-controls="cg-mobile-menu"
-              >
-                {menu ? <X size={24} /> : <Menu size={24} />}
-              </button>
-            </div>
-          </div>
-        </header>
-        {menu && (
-          <div
-            className="cg-mobile-menu"
-            id="cg-mobile-menu"
-            ref={menuRef}
-            role="dialog"
-            aria-modal="true"
-            aria-label="Menú de navegación"
-            tabIndex={-1}
-          >
-            <span className="cg-eyebrow">UN ESPACIO PARA TI</span>
-            <nav>
-              <a href="#servicios" onClick={() => setMenu(false)}>
-                Servicios <ArrowUpRight />
-              </a>
-              <a href="#camila" onClick={() => setMenu(false)}>
-                Conoce a Camila <ArrowUpRight />
-              </a>
-              <a href="#preguntas" onClick={() => setMenu(false)}>
-                Preguntas frecuentes <ArrowUpRight />
-              </a>
-              <button onClick={() => openBooking()}>
-                Agendar mi cita <ArrowUpRight />
-              </button>
-            </nav>
-            <a href="tel:+56975898382" className="cg-menu-phone">
-              +56 9 7589 8382
-            </a>
-          </div>
-        )}
         <main inert={menu ? true : undefined}>
-          <section
-            id="inicio"
-            className="cg-hero cg-container"
-            aria-labelledby="cg-hero-heading"
-            tabIndex={-1}
-          >
-            <div className="cg-hero-copy">
-              <span className="cg-location-pill">
-                <span />
-                Ñuñoa, Santiago · Online en todo Chile
-              </span>
-              <h1 id="cg-hero-heading">
-                Tu bienestar,
-                <br />
-                en buenas
-                <br />
-                <em>manos.</em>
-                <Flower2
-                  className="cg-title-flower"
-                  size={57}
-                  strokeWidth={1}
-                  aria-hidden="true"
-                />
-              </h1>
-              <p>
-                Un espacio para escucharte, resolver tus dudas y acompañarte en
-                el cuidado de tu salud.
-              </p>
-              <div className="cg-hero-actions">
-                <button className="cg-button" onClick={() => openBooking()}>
-                  Encuentra tu atención <ArrowUpRight size={20} />
-                </button>
-                <a
-                  href={whatsapp()}
-                  className="cg-round-button"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  aria-label="Conversar por WhatsApp"
-                >
-                  <MessageCircle size={21} />
-                </a>
-              </div>
-              <div className="cg-hero-professional">
-                <span className="cg-graduate">
-                  <GraduationCap size={24} strokeWidth={1.4} />
-                </span>
-                <div>
-                  <strong>{profile.fullName}</strong>
-                  <span>
-                    Licenciada con excelencia
-                    <br />
-                    {profile.university}
-                  </span>
-                </div>
-              </div>
-            </div>
-            <div className="cg-story-card">
-              <Portrait
-                index={portrait}
-                loading="eager"
-                className="cg-story-photo"
-              />
-              <div className="cg-story-shade" />
-              <div className="cg-story-top">
-                <span>
-                  <Flower2 size={21} strokeWidth={1.2} />
-                  MATRONA GUÍA
-                </span>
-                {photos.some((photo) => photo.src) && (
-                  <div
-                    className="cg-story-progress"
-                    role="group"
-                    aria-label="Fotografías de Camila"
-                  >
-                    {photos.map((photo, i) => (
-                      <button
-                        key={photo.label}
-                        aria-label={`Ver foto ${i + 1}: ${photo.label}`}
-                        aria-pressed={portrait === i}
-                        onClick={() => setPortrait(i)}
-                      />
-                    ))}
-                  </div>
-                )}
-              </div>
-              <div className="cg-story-focus" aria-hidden="true">
-                <i />
-                <i />
-                <i />
-                <i />
-              </div>
-              <div className="cg-story-bottom">
-                <span className="cg-story-tag">
-                  <Heart size={13} /> SALUD CON CERCANÍA
-                </span>
-                <h2>
-                  {photos[portrait].label.split(" ").slice(0, 2).join(" ")}
-                  <br />
-                  {photos[portrait].label.split(" ").slice(2).join(" ")}
-                  <span>.</span>
-                </h2>
-                <a href="#servicios" className="cg-story-link">
-                  <span className="cg-story-arrow">
-                    <ArrowDownRight size={23} />
-                  </span>
-                  <span>Descubre cómo te acompaño</span>
-                  <ArrowDown size={18} />
-                </a>
-              </div>
-            </div>
-          </section>
+          <HeroSection
+            onBook={() => openBooking()}
+            suspended={Boolean(booking || detail)}
+          />
 
           <section
             className="cg-highlights cg-container"
@@ -499,7 +398,9 @@ export default function App() {
                   </button>
                 ))}
               </div>
-              <span className="cg-price-unit">VALORES EN PESOS CHILENOS</span>
+              <span className="cg-price-unit">
+                ACOMPAÑAMIENTO EN CADA ETAPA
+              </span>
             </div>
             <div
               id="cg-search-panel"
@@ -526,75 +427,55 @@ export default function App() {
                 ? "servicio encontrado"
                 : "servicios encontrados"}
             </span>
-            <div className="cg-service-grid">
-              {filtered.map((service, i) => (
+            <div className="cg-service-grid cg-catalog-grid">
+              {filtered.map((service) => (
                 <article
-                  className={`cg-service-card cg-service-${service.category}`}
+                  className={`cg-service-card cg-catalog-card cg-service-${service.category}`}
                   key={service.id}
                   aria-labelledby={`service-${service.id}`}
                 >
                   <div className="cg-service-art" aria-hidden="true">
-                    <Portrait
-                      index={
-                        service.category === "examenes"
-                          ? 2
-                          : service.category === "inyectables"
-                            ? 1
-                            : services.findIndex(
-                                (item) => item.id === service.id,
-                              ) % 3
-                      }
+                    <img
                       className="cg-service-photo"
+                      src={
+                        serviceArtwork[service.category] ||
+                        serviceArtwork.default
+                      }
+                      alt=""
+                      loading="lazy"
                     />
                   </div>
                   <div className="cg-service-overlay" />
                   <div className="cg-service-top">
-                    <span>
-                      {categories.find((c) => c.id === service.category)?.label}
+                    <span className="cg-catalog-icon">
+                      <service.Icon size={23} strokeWidth={1.3} />
                     </span>
                     <button
                       className="cg-service-info"
                       onClick={() => setDetail(service)}
                       aria-label={`Ver detalles de ${service.title}`}
                     >
-                      <Info size={22} strokeWidth={1.6} />
+                      <Info size={21} />
                     </button>
                   </div>
                   <div className="cg-service-main">
-                    <span className="cg-service-mode">
-                      <MapPin size={12} /> PRESENCIAL
-                    </span>
                     <h3 id={`service-${service.id}`}>{service.title}</h3>
-                    <p>{service.priceNote}</p>
+                    <p>{service.description}</p>
                   </div>
                   <div className="cg-service-bottom">
-                    <div className="cg-service-price">
-                      <strong>{formatPriceCLP(service.price)}</strong>
-                      <span>CLP</span>
-                    </div>
-                    <div className="cg-service-actions">
-                      <a
-                        href={whatsapp(
-                          `¡Hola, Camila! Quisiera consultar por ${service.title} (${formatPriceCLP(service.price)} CLP). ${service.priceNote}`,
-                        )}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="cg-card-chat"
-                        aria-label={`Consultar por ${service.title} en WhatsApp`}
-                      >
-                        <MessageCircle size={21} />
-                      </a>
-                      <button
-                        data-book={service.id}
-                        className="cg-card-book"
-                        onClick={() => openBooking(service.id)}
-                        aria-label={`Agendar ${service.title}`}
-                      >
-                        <CalendarDays size={17} />
-                        Agendar atención
-                        <ArrowUpRight size={17} />
-                      </button>
-                    </div>
+                    <a
+                      className="cg-card-book"
+                      href={whatsapp(
+                        `¡Hola, Camila! Quisiera consultar y agendar una atención de ${service.title}.`,
+                      )}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      aria-label={`Consultar y agendar ${service.title}`}
+                    >
+                      <MessageCircle size={17} />
+                      Consultar / Agendar
+                      <ArrowUpRight size={17} />
+                    </a>
                   </div>
                 </article>
               ))}
@@ -666,6 +547,12 @@ export default function App() {
                 <em>Camila Rojas.</em>
               </h2>
               <p className="cg-about-lead">{profile.education}</p>
+              <div className="cg-about-tags">
+                <span>
+                  USS · {profile.distinction} {profile.graduationYear}
+                </span>
+                <span>Atención desde los {profile.minAge} años</span>
+              </div>
               <p>
                 En Matrona Guía encontrarás un espacio para conversar con
                 confianza sobre tu salud, con información clara y respeto por
@@ -698,6 +585,193 @@ export default function App() {
                 <ArrowUpRight size={18} />
               </a>
             </div>
+          </section>
+
+          <section
+            className="cg-modalities cg-container cg-reveal"
+            id="atencion"
+            aria-labelledby="cg-modalities-heading"
+          >
+            <div className="cg-section-heading">
+              <div>
+                <span className="cg-eyebrow">
+                  CERCA DE TI, ESTÉS DONDE ESTÉS
+                </span>
+                <h2 id="cg-modalities-heading">
+                  Dos formas de encontrarnos.
+                  <br />
+                  <em>El mismo cuidado.</em>
+                </h2>
+              </div>
+            </div>
+            <div className="cg-modality-grid">
+              <article>
+                <span className="cg-modality-icon">
+                  <MapPin size={27} strokeWidth={1.3} />
+                </span>
+                <span className="cg-eyebrow">ÑUÑOA, SANTIAGO</span>
+                <h3>Atención presencial</h3>
+                <p>{profile.address}</p>
+                <ul>
+                  <li>
+                    <CalendarDays size={16} />
+                    {profile.presentialSchedule}
+                  </li>
+                  <li>
+                    <Clock3 size={16} />
+                    Duración: {profile.presentialDuration}
+                  </li>
+                </ul>
+                <div>
+                  <a
+                    className="cg-text-link"
+                    href={mapUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    Cómo llegar <ArrowUpRight size={17} />
+                  </a>
+                  <button
+                    className="cg-text-link"
+                    onClick={() => setMapOpen((v) => !v)}
+                    aria-expanded={mapOpen}
+                    aria-controls="cg-map"
+                  >
+                    {mapOpen ? "Ocultar mapa" : "Ver mapa"}
+                    <MapPin size={16} />
+                  </button>
+                </div>
+              </article>
+              <article>
+                <span className="cg-modality-icon">
+                  <Globe2 size={27} strokeWidth={1.3} />
+                </span>
+                <span className="cg-eyebrow">PARA TODO CHILE</span>
+                <h3>Atención online</h3>
+                <p>
+                  Un espacio para conversar por videollamada o chat, desde donde
+                  te sientas cómoda.
+                </p>
+                <ul>
+                  <li>
+                    <Globe2 size={16} />
+                    Videollamada y chat
+                  </li>
+                  <li>
+                    <Clock3 size={16} />
+                    Duración: {profile.onlineDuration}
+                  </li>
+                </ul>
+                <button
+                  className="cg-text-link"
+                  onClick={() => openBooking("online-ginecologia")}
+                >
+                  Consultar por atención online
+                  <ArrowUpRight size={17} />
+                </button>
+              </article>
+            </div>
+            <div id="cg-map" hidden={!mapOpen} className="cg-map-wrap">
+              {mapOpen && (
+                <iframe
+                  title="Ubicación de la consulta de Matrona Guía en Ñuñoa"
+                  src="https://maps.google.com/maps?q=Carmen%20Covarrubias%2032%2C%20%C3%91u%C3%B1oa%2C%20Santiago&output=embed"
+                  loading="lazy"
+                  referrerPolicy="no-referrer-when-downgrade"
+                />
+              )}
+            </div>
+          </section>
+          <section
+            className="cg-pricing cg-container cg-reveal"
+            id="valores"
+            aria-labelledby="cg-pricing-heading"
+          >
+            <div className="cg-section-heading">
+              <div>
+                <span className="cg-eyebrow">
+                  INFORMACIÓN CLARA PARA DECIDIR
+                </span>
+                <h2 id="cg-pricing-heading">
+                  Conoce los valores
+                  <br />
+                  <em>de tu atención.</em>
+                </h2>
+              </div>
+              <span className="cg-pricing-currency">PESOS CHILENOS · CLP</span>
+            </div>
+            <div
+              className="cg-price-tabs"
+              role="group"
+              aria-label="Modalidad de los valores"
+            >
+              {priceGroups.map((group) => (
+                <button
+                  key={group.id}
+                  aria-pressed={priceMode === group.id}
+                  onClick={() => setPriceMode(group.id)}
+                >
+                  {group.title}
+                </button>
+              ))}
+            </div>
+            <div className="cg-pricing-table">
+              <table>
+                <caption className="sr-only">
+                  Valores de {selectedPriceGroup.title}
+                </caption>
+                <thead>
+                  <tr>
+                    <th scope="col">Atención</th>
+                    <th scope="col">Valor</th>
+                    <th scope="col">
+                      <span className="sr-only">Solicitar atención</span>
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {selectedPriceGroup.services.map((service) => (
+                    <tr key={service.id}>
+                      <th scope="row">
+                        <span>{service.title}</span>
+                        {service.priceNote && (
+                          <small>{service.priceNote}</small>
+                        )}
+                      </th>
+                      <td>
+                        <span>
+                          {service.from ? "Desde " : ""}
+                          {formatPriceCLP(service.price)}
+                        </span>
+                      </td>
+                      <td>
+                        <button
+                          onClick={() => openBooking(service.id)}
+                          aria-label={`Agendar ${service.title}`}
+                        >
+                          <CalendarDays size={17} />
+                          <span>Agendar</span>
+                          <ArrowUpRight size={16} />
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            <p className="cg-price-note">
+              Los valores pueden actualizarse. Confirma el detalle de tu
+              atención al coordinar tu cita.{" "}
+              <a
+                href={whatsapp(
+                  "¡Hola, Camila! Quisiera confirmar el valor de una atención.",
+                )}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                Consultar por WhatsApp <ArrowUpRight size={14} />
+              </a>
+            </p>
           </section>
 
           <section className="cg-how-section">
@@ -748,12 +822,32 @@ export default function App() {
                   </div>
                 ))}
               </div>
+              <div className="cg-reservation-terms">
+                <div>
+                  <strong>Atención online</strong>
+                  <span>Pago del valor completo de tu atención.</span>
+                </div>
+                <div>
+                  <strong>Atención presencial</strong>
+                  <span>
+                    Abono de $10.000 por transferencia para reservar tu hora.
+                  </span>
+                </div>
+                <div>
+                  <strong>Si necesitas reagendar</strong>
+                  <span>
+                    Avisa con al menos 2 días hábiles de anticipación.
+                  </span>
+                </div>
+              </div>
               <button className="cg-button" onClick={() => openBooking()}>
                 Agendar una cita <ArrowUpRight size={18} />
               </button>
             </div>
           </section>
 
+          <Education />
+          <PatientExperiences />
           <section
             className="cg-faq cg-container"
             id="preguntas"
@@ -813,7 +907,7 @@ export default function App() {
                   <Portrait />
                 </span>
                 <div>
-                  <strong>{profile.fullName}</strong>
+                  <strong>Matrona {profile.fullName}</strong>
                   <span>Ñuñoa · Online para todo Chile</span>
                 </div>
                 <span className="cg-contact-label">CONVERSEMOS</span>
@@ -852,6 +946,7 @@ export default function App() {
                 </div>
               </div>
             </div>
+            <ContactForm />
           </section>
         </main>
         <footer
@@ -880,6 +975,20 @@ export default function App() {
               </a>
             </div>
           </div>
+          <div className="cg-footer-details">
+            <span>
+              <MapPin size={16} />
+              {profile.address}
+            </span>
+            <span>
+              <CalendarDays size={16} />
+              {profile.presentialSchedule}
+            </span>
+            <a href={`mailto:${profile.email}`}>
+              <Mail size={16} />
+              {profile.email}
+            </a>
+          </div>
           <div className="cg-footer-bottom">
             <span>
               © {new Date().getFullYear()} Matrona Guía · Camila Rojas
@@ -888,7 +997,19 @@ export default function App() {
             <span>Ñuñoa, Santiago · Online para todo Chile</span>
           </div>
         </footer>
-        {scrollTop && (
+        {pastHero && (
+          <a
+            className="cg-whatsapp-float"
+            href={whatsapp()}
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label="Conversar con Camila por WhatsApp"
+          >
+            <MessageCircle size={22} />
+            <span>¿Conversamos?</span>
+          </a>
+        )}
+        {scrollTop && pastHero && (
           <button
             className="cg-back-top"
             aria-label="Volver al inicio"
@@ -914,28 +1035,24 @@ export default function App() {
           <span className="detail-icon">
             <detail.Icon size={32} strokeWidth={1.3} />
           </span>
-          <span className="eyebrow">PROCEDIMIENTOS Y EXÁMENES</span>
+          <span className="eyebrow">UN ESPACIO PARA TU SALUD</span>
           <h2>{detail.title}</h2>
-          <span className="cg-detail-price">
-            {formatPriceCLP(detail.price)} <small>CLP</small>
-          </span>
-          <p className="modal-description">{detail.detail}</p>
-          <ul className="detail-points">
-            {detail.points.map((point) => (
-              <li key={point}>
-                <CircleCheck size={17} />
-                {point}
-              </li>
-            ))}
-          </ul>
-          <button
+          <p className="modal-description">{detail.description}</p>
+          <p className="cg-catalog-detail-note">
+            Conversemos para coordinar la modalidad y la atención que necesitas.
+            Los procedimientos se realizan de manera presencial.
+          </p>
+          <a
             className="button full-width"
-            onClick={() => openBooking(detail.id)}
+            href={whatsapp(
+              `¡Hola, Camila! Me gustaría consultar por ${detail.title} y coordinar una atención.`,
+            )}
+            target="_blank"
+            rel="noopener noreferrer"
           >
-            Agendar esta atención
+            Consultar por WhatsApp
             <ArrowUpRight size={18} />
-          </button>
-          <p className="modal-note">Atención presencial en Ñuñoa, Santiago.</p>
+          </a>
         </Modal>
       )}
       {booking && (

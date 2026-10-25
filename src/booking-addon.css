@@ -1,0 +1,156 @@
+.booking-modal .booking-mode-tabs {
+  display: grid;
+  grid-template-columns: 0.8fr 1fr 1.35fr;
+  gap: 5px;
+  margin-top: 18px;
+  padding: 4px;
+  border: 1px solid #e9d1dc;
+  border-radius: 12px;
+  background: #f7eaf0;
+}
+.booking-modal .booking-mode-tabs button {
+  min-width: 0;
+  min-height: 39px;
+  border-radius: 8px;
+  background: transparent;
+  padding: 8px 7px;
+  color: #73475c;
+  font-size: 11px;
+  line-height: 1.35;
+  font-weight: 500;
+  transition:
+    background 0.2s,
+    color 0.2s;
+}
+.booking-modal .booking-mode-tabs button[aria-selected="true"] {
+  background: #a13e65;
+  color: white;
+  box-shadow: 0 2px 7px #71334a17;
+}
+.booking-modal .booking-mode-note {
+  color: #715164;
+  font-size: 10px;
+  line-height: 1.8;
+  margin: 11px 2px 0;
+}
+.booking-modal .booking-services {
+  margin-top: 14px;
+  max-height: 300px;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: #d1a0b5 transparent;
+  padding: 2px 3px 3px 0;
+}
+.booking-modal .booking-service {
+  min-height: 69px;
+  padding: 13px 14px;
+  flex-shrink: 0;
+}
+.booking-modal .booking-service > svg {
+  flex-shrink: 0;
+}
+.booking-modal .booking-service-label {
+  display: block;
+  flex: 1;
+  min-width: 0;
+  font-size: 11px;
+  line-height: 1.5;
+}
+.booking-modal .booking-service-label > small {
+  display: block;
+  margin-top: 5px;
+  font-size: 11px;
+  font-weight: 600;
+  color: #8c3e60;
+}
+.booking-modal .booking-service .radio-circle {
+  flex-shrink: 0;
+  margin-left: auto;
+}
+.booking-modal .booking-appointment-context {
+  margin-top: 13px;
+  padding: 11px 13px;
+  border-radius: 9px;
+  background: #f5e6ed;
+  color: #6f3e55;
+  font-size: 10px;
+  line-height: 1.7;
+}
+.booking-modal .booking-appointment-context > span {
+  display: inline-block;
+  font-weight: 600;
+  margin-right: 12px;
+}
+.booking-modal .booking-appointment-context > small {
+  font-size: 10px;
+}
+.booking-modal .booking-appointment-context > p {
+  font-size: 10px;
+  line-height: 1.7;
+  margin-top: 4px;
+  color: #715164;
+}
+.booking-modal .time-options.booking-time-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 7px;
+}
+.booking-modal .booking-time-grid > button {
+  min-height: 38px;
+  min-width: 0;
+  padding: 8px 5px;
+  font-size: 10px;
+}
+.booking-modal .booking-summary small {
+  display: block;
+  margin-top: 5px;
+  font-size: 10px;
+  line-height: 1.6;
+  color: #725466;
+}
+.booking-modal .booking-reservation-note {
+  margin: 16px 0 18px;
+  padding: 14px;
+  border: 1px solid #e6c6d4;
+  border-radius: 10px;
+  background: #f7eaf0;
+  color: #633b4f;
+}
+.booking-modal .booking-reservation-note > strong {
+  display: block;
+  font-size: 11px;
+  font-weight: 600;
+  margin-bottom: 7px;
+}
+.booking-modal .booking-reservation-note > p {
+  font-size: 10px;
+  line-height: 1.8;
+  color: #705064;
+}
+.booking-modal .booking-reservation-note > p + p {
+  margin-top: 6px;
+}
+@media (max-width: 370px) {
+  .booking-modal .booking-mode-tabs button {
+    font-size: 9px;
+    padding-inline: 4px;
+  }
+  .booking-modal .booking-service {
+    padding: 12px 10px;
+    gap: 10px;
+  }
+  .booking-modal .booking-service-label {
+    font-size: 10px;
+  }
+  .booking-modal .booking-service-label > small {
+    font-size: 10px;
+  }
+  .booking-modal .time-options.booking-time-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .booking-modal .booking-mode-tabs button {
+    transition: none;
+  }
+}

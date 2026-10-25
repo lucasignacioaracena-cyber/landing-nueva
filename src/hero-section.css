@@ -1,0 +1,865 @@
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+@keyframes blurIn {
+  from {
+    opacity: 0;
+    filter: blur(12px);
+  }
+  to {
+    opacity: 1;
+    filter: blur(0);
+  }
+}
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-8px);
+  }
+}
+.matrona-hero {
+  --hero-rose: #9e4b5f;
+  position: relative;
+  width: 100%;
+  height: 100svh;
+  min-height: 760px;
+  overflow: hidden;
+  background: var(--hero-rose);
+  color: #fff;
+  font-family: "Inter", sans-serif;
+  isolation: isolate;
+}
+.matrona-hero:focus {
+  outline: none;
+}
+.matrona-hero :is(button, a) {
+  font-family: inherit;
+}
+.matrona-hero :is(button, a):focus-visible {
+  outline: 2px solid #fff;
+  outline-offset: 6px;
+}
+.mh-media {
+  position: absolute;
+  inset: 0;
+  z-index: -3;
+}
+.mh-poster,
+.mh-video {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+}
+.mh-video {
+  opacity: 0;
+}
+.mh-video-ready {
+  animation: fadeIn 1.2s ease-out 0.2s both;
+}
+.mh-shade {
+  position: absolute;
+  inset: 0;
+  z-index: -2;
+  background:
+    linear-gradient(90deg, #6d2d46f5 0%, #703049dd 30%, #70304926 70%),
+    linear-gradient(180deg, #3d1e35bf, transparent 40%, #3d1e3555);
+}
+.mh-mobile-blend {
+  display: none;
+}
+.mh-main {
+  position: relative;
+  height: 100%;
+}
+.mh-header {
+  position: relative;
+  z-index: 10;
+  gap: 20px;
+  animation: slideDown 0.7s ease-out 0.1s both;
+}
+.mh-wordmark {
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+  align-items: center;
+  line-height: 1;
+  background: #f6dde1f2;
+  color: #974359;
+  border: 1px solid #f8e6eb;
+  border-radius: 4px;
+  padding: 8px 13px 10px;
+}
+.mh-wordmark > span:first-child {
+  font-family: "Cormorant Garamond", Georgia, serif;
+  font-size: 29px;
+  font-weight: 500;
+  letter-spacing: 0.7px;
+}
+.mh-wordmark > span:last-child {
+  font-family: "Dancing Script", cursive;
+  font-size: 23px;
+  color: #51454b;
+  margin-top: 5px;
+}
+.mh-nav {
+  align-items: center;
+  justify-content: center;
+  gap: clamp(18px, 2vw, 32px);
+}
+.mh-nav a {
+  font-size: 14px;
+  white-space: nowrap;
+  font-weight: 400;
+  color: #ffffffd9;
+  transition: color 0.2s;
+}
+.mh-nav a:hover,
+.mh-nav .mh-nav-active {
+  color: #fff;
+  font-weight: 500;
+}
+.mh-contact {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+  border-radius: 50px;
+  background: #fff;
+  color: #352832;
+  min-height: 48px;
+  padding: 9px 11px 9px 20px;
+  font-size: 14px;
+  white-space: nowrap;
+}
+.mh-contact > span {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: #f6dde1;
+  color: #91495e;
+  transition: transform 0.3s;
+}
+.mh-menu-toggle {
+  position: relative;
+  width: 40px;
+  height: 40px;
+  background: none;
+  color: #fff;
+  flex-shrink: 0;
+}
+.mh-menu-toggle svg {
+  position: absolute;
+  top: 6px;
+  left: 6px;
+  transition:
+    opacity 0.3s,
+    transform 0.3s;
+}
+.mh-menu-toggle .mh-toggle-hidden {
+  opacity: 0;
+  transform: rotate(90deg) scale(0.6);
+}
+.mh-heading {
+  position: relative;
+  z-index: 2;
+  text-align: left;
+  animation: blurIn 0.9s ease-out 0.3s both;
+}
+.mh-eyebrow {
+  display: block;
+  font-size: 9px;
+  letter-spacing: 2px;
+  font-weight: 500;
+  line-height: 1.7;
+  color: #f9e8ed;
+  margin-bottom: 24px;
+}
+.matrona-hero h1 {
+  font-family: "Inter", sans-serif;
+  font-size: clamp(72px, 7.2vw, 100px);
+  font-weight: 400;
+  line-height: 0.9;
+  letter-spacing: -5px;
+  margin: 0;
+  color: #fff;
+}
+.matrona-hero h1 > span {
+  display: block;
+  white-space: nowrap;
+}
+.matrona-hero h1 > .mh-last-line {
+  display: flex;
+  align-items: flex-end;
+  gap: 24px;
+}
+.mh-avatar-group {
+  align-items: center;
+  gap: 9px;
+  margin-bottom: 0.1em;
+  letter-spacing: 0;
+}
+.mh-avatar-group > img {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  border: 2px solid #b56d82;
+  object-fit: cover;
+  object-position: 60% 10%;
+}
+.mh-avatar-group > span {
+  display: block;
+  color: white;
+  font-size: 11px;
+  line-height: 1.5;
+  font-weight: 400;
+}
+.mh-avatar-group strong {
+  font-weight: 500;
+}
+.matrona-hero .mh-subtext {
+  max-width: 390px;
+  color: #ffffffd1;
+  font-size: 15px;
+  line-height: 1.6;
+  margin-top: 24px;
+}
+.mh-subtext strong {
+  color: #fff;
+  font-weight: 500;
+}
+.mh-heading-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 25px;
+}
+.mh-book {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 24px;
+  min-height: 51px;
+  padding: 8px 9px 8px 23px;
+  border: 1px solid #fff;
+  border-radius: 40px;
+  background: #fff;
+  color: #5c3045;
+  font-size: 12px;
+  transition:
+    transform 0.3s,
+    background 0.3s;
+}
+.mh-book > span {
+  width: 34px;
+  height: 34px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: #f6dde1;
+}
+.mh-book:hover {
+  transform: translateY(-3px);
+  background: #f9e9ef;
+}
+.mh-direct-whatsapp {
+  width: 51px;
+  height: 51px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #66324899;
+  backdrop-filter: blur(9px);
+  border: 1px solid #ffffff73;
+  border-radius: 50%;
+  color: white;
+}
+.mh-figure {
+  position: absolute;
+  bottom: 0;
+  left: clamp(24px, 4.5vw, 64px);
+  width: 220px;
+  height: 280px;
+  overflow: hidden;
+  border-radius: 27px 27px 0 0;
+  background: #fff5f8;
+  box-shadow: 0 0 60px #35142d30;
+  animation: slideUp 0.9s ease-out 0.8s both;
+}
+.mh-figure > img {
+  position: absolute;
+  inset: 59px 0 0;
+  width: 100%;
+  height: calc(100% - 59px);
+  object-fit: cover;
+  object-position: 50% 9%;
+}
+.mh-figure-stat {
+  position: absolute;
+  top: 12px;
+  left: 16px;
+  right: 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  color: #974359;
+  gap: 10px;
+}
+.mh-figure-stat strong {
+  font-size: 17px;
+  font-weight: 600;
+}
+.mh-figure-stat > span {
+  font-size: 8px;
+  line-height: 1.6;
+  max-width: 62px;
+  text-align: right;
+}
+.mh-figure-caption {
+  position: absolute;
+  inset: auto 0 0;
+  background: linear-gradient(transparent, #3d2037eb);
+  padding: 24px 13px 12px;
+  font-size: 10px;
+  line-height: 1.6;
+  color: #fff;
+}
+.mh-figure-caption small {
+  display: block;
+  font-size: 7px;
+  color: #fff0f7;
+}
+.mh-bottom {
+  position: absolute;
+  bottom: 27px;
+  right: clamp(24px, 4.5vw, 64px);
+  display: flex;
+  align-items: center;
+  gap: 30px;
+}
+.mh-scroll {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: #fff;
+  font-size: 10px;
+}
+.mh-scroll svg {
+  animation: float 3s ease-in-out infinite;
+}
+.mh-motion {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  border: 1px solid #ffffff8c;
+  border-radius: 30px;
+  padding: 10px 13px;
+  color: white;
+  background: #543048a3;
+  backdrop-filter: blur(9px);
+  font-size: 9px;
+  line-height: 1.5;
+}
+.mh-motion:disabled {
+  opacity: 0.85;
+}
+.mh-menu-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 80px 28px 36px;
+  background: #9e4b5ff5;
+  backdrop-filter: blur(16px);
+  color: white;
+  animation: fadeIn 0.3s ease both;
+}
+.mh-menu-close {
+  position: absolute;
+  top: 24px;
+  right: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  background: none;
+  color: white;
+}
+.mh-menu-label {
+  font-family: "Cormorant Garamond", Georgia, serif;
+  font-size: 29px;
+  letter-spacing: 2px;
+  margin-bottom: 24px;
+}
+.mh-menu-overlay nav {
+  width: min(420px, 100%);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-bottom: 32px;
+}
+.mh-menu-overlay nav a {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 25px;
+  font-size: 30px;
+  line-height: 1.3;
+  font-weight: 300;
+  padding: 12px 0;
+  animation: slideUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+.mh-menu-overlay > .mh-contact {
+  animation: slideUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) 0.4s both;
+}
+@media (min-width: 1440px) {
+  .mh-header {
+    padding-top: 42px;
+  }
+  .mh-heading {
+    margin-top: 43px;
+  }
+  .mh-figure {
+    height: 270px;
+    width: 215px;
+  }
+}
+@media (min-width: 768px) and (max-height: 850px) {
+  .matrona-hero {
+    min-height: 700px;
+  }
+  .mh-header {
+    padding-top: 25px;
+  }
+  .mh-heading {
+    margin-top: 24px;
+  }
+  .mh-eyebrow {
+    margin-bottom: 18px;
+  }
+  .matrona-hero h1 {
+    font-size: 76px;
+    line-height: 0.87;
+  }
+  .matrona-hero .mh-subtext {
+    font-size: 13px;
+    line-height: 1.5;
+    margin-top: 18px;
+    max-width: 350px;
+  }
+  .mh-heading-actions {
+    margin-top: 19px;
+  }
+  .mh-figure {
+    width: 178px;
+    height: 205px;
+  }
+  .mh-figure-stat {
+    top: 10px;
+    left: 12px;
+    right: 12px;
+  }
+  .mh-figure-stat strong {
+    font-size: 14px;
+  }
+  .mh-figure > img {
+    top: 48px;
+    height: calc(100% - 48px);
+  }
+  .mh-figure-caption {
+    font-size: 9px;
+    padding-bottom: 9px;
+  }
+}
+@media (min-width: 768px) and (max-width: 1100px) {
+  .mh-header {
+    gap: 15px;
+  }
+  .mh-wordmark {
+    padding-inline: 9px;
+  }
+  .mh-wordmark > span:first-child {
+    font-size: 24px;
+  }
+  .mh-wordmark > span:last-child {
+    font-size: 20px;
+  }
+  .mh-nav {
+    gap: 17px;
+  }
+  .mh-nav a {
+    font-size: 12px;
+  }
+  .mh-contact {
+    gap: 12px;
+    font-size: 12px;
+    padding-left: 15px;
+    min-height: 44px;
+  }
+  .mh-contact > span {
+    width: 28px;
+    height: 28px;
+  }
+}
+@media (max-width: 767px) {
+  .matrona-hero {
+    height: 100svh;
+    min-height: 560px;
+  }
+  .mh-media {
+    top: 30%;
+    height: 70%;
+  }
+  .mh-poster,
+  .mh-video {
+    object-position: 80% center;
+  }
+  .mh-shade {
+    background: linear-gradient(
+      180deg,
+      #9e4b5f 0%,
+      #9e4b5f 30%,
+      #68304655 68%,
+      #3d1e3585
+    );
+  }
+  .mh-mobile-blend {
+    display: block;
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 30%;
+    height: 128px;
+    z-index: -1;
+    background: linear-gradient(#9e4b5f, transparent);
+    pointer-events: none;
+  }
+  .mh-header {
+    padding-top: 23px;
+  }
+  .mh-wordmark {
+    padding: 6px 10px 9px;
+  }
+  .mh-wordmark > span:first-child {
+    font-size: 27px;
+  }
+  .mh-wordmark > span:last-child {
+    font-size: 22px;
+  }
+  .mh-header > .mh-contact {
+    display: none;
+  }
+  .mh-heading {
+    text-align: center;
+    margin-top: 31px;
+    max-width: 100%;
+  }
+  .mh-eyebrow {
+    font-size: 7px;
+    letter-spacing: 1.7px;
+    margin-bottom: 22px;
+  }
+  .matrona-hero h1 {
+    font-size: 72px;
+    line-height: 0.9;
+    letter-spacing: -3.9px;
+  }
+  .matrona-hero h1 > .mh-last-line {
+    display: block;
+  }
+  .mh-heading-actions {
+    justify-content: center;
+    margin-top: 24px;
+  }
+  .mh-book {
+    min-height: 48px;
+    font-size: 11px;
+    padding-left: 19px;
+    gap: 16px;
+  }
+  .mh-book > span {
+    width: 31px;
+    height: 31px;
+  }
+  .mh-direct-whatsapp {
+    width: 48px;
+    height: 48px;
+  }
+  .mh-bottom {
+    left: 24px;
+    right: 24px;
+    bottom: 24px;
+    justify-content: space-between;
+    gap: 12px;
+  }
+  .mh-scroll {
+    font-size: 9px;
+    gap: 9px;
+    text-shadow: 0 1px 6px #39132a;
+  }
+  .mh-motion {
+    font-size: 8px;
+    padding: 9px 11px;
+    gap: 6px;
+  }
+  .mh-motion svg {
+    width: 12px;
+    height: 12px;
+  }
+  .mh-menu-overlay nav {
+    max-width: 310px;
+  }
+  .mh-menu-overlay nav a {
+    font-size: 30px;
+  }
+}
+@media (max-width: 370px) {
+  .mh-header {
+    padding-inline: 20px;
+  }
+  .mh-wordmark > span:first-child {
+    font-size: 25px;
+  }
+  .mh-wordmark > span:last-child {
+    font-size: 20px;
+  }
+  .mh-heading {
+    padding-inline: 20px;
+    margin-top: 28px;
+  }
+  .matrona-hero h1 {
+    font-size: 65px;
+    letter-spacing: -3.4px;
+  }
+  .mh-eyebrow {
+    font-size: 6px;
+    letter-spacing: 1.4px;
+  }
+  .mh-bottom {
+    left: 20px;
+    right: 20px;
+  }
+  .mh-motion span {
+    max-width: 75px;
+    text-align: left;
+  }
+}
+@media (max-height: 560px) and (min-aspect-ratio: 1/1) {
+  .matrona-hero {
+    min-height: 320px;
+    height: 100svh;
+  }
+  .mh-figure {
+    display: none;
+  }
+  .mh-heading {
+    text-align: left;
+    max-width: 600px;
+    margin-top: 20px;
+  }
+  .mh-header {
+    padding-top: 20px;
+  }
+  .matrona-hero h1 {
+    font-size: 46px;
+    line-height: 0.9;
+  }
+  .mh-eyebrow {
+    margin-bottom: 15px;
+  }
+  .mh-heading-actions {
+    justify-content: flex-start;
+    margin-top: 18px;
+  }
+  .matrona-hero .mh-subtext {
+    display: none;
+  }
+  .mh-menu-overlay {
+    padding-block: 64px 20px;
+  }
+  .mh-menu-label {
+    font-size: 23px;
+    margin-bottom: 12px;
+  }
+  .mh-menu-overlay nav {
+    margin-bottom: 15px;
+  }
+  .mh-menu-overlay nav a {
+    font-size: 24px;
+    padding-block: 6px;
+  }
+  .mh-menu-overlay > .mh-contact {
+    min-height: 40px;
+    padding-block: 6px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .matrona-hero *,
+  .matrona-hero *::before,
+  .matrona-hero *::after {
+    animation: none !important;
+    transition: none !important;
+  }
+  .mh-video {
+    display: none;
+  }
+  .mh-video-ready {
+    opacity: 1;
+  }
+}
+
+@media (max-height: 360px) and (min-aspect-ratio: 1/1) {
+  .mh-header {
+    padding-top: 14px;
+  }
+  .mh-wordmark {
+    padding: 5px 9px 7px;
+  }
+  .mh-wordmark > span:first-child {
+    font-size: 22px;
+  }
+  .mh-wordmark > span:last-child {
+    font-size: 18px;
+  }
+  .mh-heading {
+    margin-top: 15px;
+  }
+  .mh-eyebrow {
+    display: none;
+  }
+  .matrona-hero h1 {
+    font-size: 39px;
+  }
+  .mh-heading-actions {
+    margin-top: 15px;
+  }
+  .mh-book {
+    min-height: 43px;
+    padding-block: 6px;
+  }
+  .mh-book > span {
+    width: 29px;
+    height: 29px;
+  }
+  .mh-direct-whatsapp {
+    height: 43px;
+    width: 43px;
+  }
+  .mh-bottom {
+    bottom: 17px;
+  }
+  .mh-menu-label {
+    display: none;
+  }
+  .mh-menu-overlay nav a {
+    font-size: 22px;
+    padding-block: 5px;
+  }
+}
+/* Keep the requested full-viewport layout on shorter screens. */
+.matrona-hero {
+  min-height: 0;
+}
+@media (min-width: 768px) and (max-height: 660px) {
+  .matrona-hero {
+    min-height: 0;
+  }
+  .mh-figure {
+    display: none;
+  }
+  .matrona-hero h1 {
+    font-size: 64px;
+  }
+}
+@media (max-width: 767px) and (max-height: 620px) {
+  .matrona-hero {
+    min-height: 0;
+  }
+  .mh-header {
+    padding-top: 18px;
+  }
+  .mh-heading {
+    margin-top: 24px;
+  }
+  .matrona-hero h1 {
+    font-size: 62px;
+  }
+  .mh-eyebrow {
+    margin-bottom: 19px;
+  }
+  .mh-heading-actions {
+    margin-top: 21px;
+  }
+}
+@media (max-width: 767px) and (max-height: 520px) and (max-aspect-ratio: 1/1) {
+  .mh-heading {
+    margin-top: 18px;
+  }
+  .matrona-hero h1 {
+    font-size: 50px;
+  }
+  .mh-eyebrow {
+    margin-bottom: 15px;
+  }
+  .mh-heading-actions {
+    margin-top: 17px;
+  }
+  .mh-book {
+    min-height: 44px;
+    padding-block: 6px;
+  }
+  .mh-direct-whatsapp {
+    width: 44px;
+    height: 44px;
+  }
+}
+@media (max-height:560px) and (min-aspect-ratio:1/1) {
+  .matrona-hero h1 { font-size:42px;line-height:.9; }
+  .mh-heading { margin-top:12px; }
+  .mh-eyebrow { font-size:7px;margin-bottom:12px; }
+  .mh-heading-actions { margin-top:14px; }
+}
+@media (max-height:360px) and (min-aspect-ratio:1/1) {
+  .mh-header { padding-top:14px; }
+  .mh-heading { margin-top:10px; }
+  .mh-eyebrow { display:none; }
+  .matrona-hero h1 { font-size:36px; }
+}

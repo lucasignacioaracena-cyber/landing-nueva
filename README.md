@@ -1,60 +1,72 @@
-# Matrona Guía — Camila Rojas
+# Matrona Guía — Camila Rojas Torres
 
-Sitio de servicios de Matrona Camila Rojas, licenciada en Obstetricia y Puericultura con excelencia de la Universidad San Sebastián. Atención presencial en Ñuñoa, Santiago, y online para todo Chile.
+Web de servicios de la matrona Camila Rojas Torres, Universidad San Sebastián 2024 con Distinción Máxima. Atención presencial en Carmen Covarrubias 32, Ñuñoa, los viernes de 10:00 a 16:00, y online para todo Chile.
 
-El diseño actual adapta el último HTML Denta proporcionado: tarjetas grandes, botones circulares, filtros redondeados, detalles de atención y acceso a la agenda. Usa rosado y blanco, fuentes Inter locales y una distribución responsive. Los conceptos inmobiliarios y las pantallas de odontología no se muestran en la web.
+## Ejecutar
 
-## Desarrollo
-
-React + TypeScript, Tailwind CSS y Vite. Requiere Node.js 20.19+, 22.12+ o una versión posterior compatible.
+Requiere Node.js 24 para el almacenamiento SQLite integrado.
 
 ```sh
 npm ci --cache /workspace/.npm-cache
 npm run dev -- --port 5173
-npm run build
-npm run preview -- --port 4173
 ```
 
-La compilación comprueba los tipos antes de generar la aplicación. `npm run typecheck` los comprueba por separado.
+El comando inicia Vite y la API en `127.0.0.1:3001`. Vite deriva `/api` a esa API. Para compilar y revisar el resultado:
 
-## Contenido confirmado
+```sh
+npm run build
+npm start
+```
 
-| Servicio presencial                    | Valor CLP | Condiciones                                    |
-| -------------------------------------- | --------: | ---------------------------------------------- |
-| Toma de PAP                            |   $20.000 | Incluye kit de muestra y entrega de resultados |
-| Inserción de Implanon o Levoplant      |   $40.000 | Dispositivo no incluido                        |
-| Inserción de DIU de cobre o Silverflex |   $40.000 | Dispositivo no incluido                        |
-| Extracción de implante subdérmico      |   $35.000 | Atención presencial                            |
-| Extracción de DIU                      |   $40.000 | Atención presencial                            |
-| Inyectable IM o vacuna                 |   $15.000 | Solo administración, medicamento no incluido   |
+`npm run build` comprueba TypeScript antes de compilar. `npm run typecheck` ejecuta solo la comprobación. `npm start` sirve el resultado compilado en el puerto 4173 y arranca la API.
 
-Los datos, categorías y precios se mantienen en `src/content.js`. La duración, los horarios efectivos, la dirección exacta y los servicios/valores de consultas online no se han especificado. La atención online se consulta directamente por WhatsApp y no se ofrece como procedimiento virtual.
+## Portada
 
-## Interacciones
+`src/HeroSection.tsx` concentra la portada a pantalla completa, navegación, menú móvil con gestión de foco y animaciones de entrada. Adapta la referencia visual al nombre y los rosados de Matrona Guía. Usa Inter (pesos 300–700) servido localmente, así como las tipografías de la marca para el logotipo tipográfico.
 
-- Filtros de exámenes, anticoncepción e inyectables, búsqueda sin sensibilidad a tildes y estado sin resultados.
-- Detalles de cada servicio con valor y condiciones; agenda con la atención preseleccionada.
-- Menú móvil con gestión de foco, preguntas desplegables y retorno al inicio.
-- Efectos suaves que respetan la preferencia de movimiento reducido.
+El fondo utiliza los MP4 locales de maternidad para escritorio y móvil. Se reproducen silenciados y en bucle; se pausan al salir de pantalla, abrir el menú o la agenda, ocultar la pestaña o activar el control de pausa. La preferencia de movimiento reducido evita descargar el MP4 y presenta su poster. El fondo se adapta al 70% inferior de la pantalla en móvil. Si falla la carga, permanece visible el poster.
 
-## Solicitud de cita
+El video dental externo, la figura de Figma, las imágenes de Pexels y Google Fonts del ejemplo no son accesibles desde la red del entorno. Se usaron medios locales adecuados para Matrona Guía y la misma fuente Inter incluida en el proyecto. No se trasladaron las estadísticas ficticias del ejemplo a Camila.
 
-`src/Booking.jsx` recoge el motivo, la fecha y el horario preferidos y el nombre. Abre WhatsApp al **+56 9 7589 8382** con un mensaje preparado que incluye el valor y sus condiciones. La persona envía el mensaje y confirma la disponibilidad personalmente. No es una agenda de cupos en tiempo real; no procesa pagos ni guarda datos del formulario. El calendario toma el día actual de Chile continental.
+## Contenido e interacciones
 
-## Fotografías
+- Catálogo de 11 áreas con filtros y búsqueda sin sensibilidad a tildes.
+- Valores de 19 prestaciones en tres grupos: online, presencial y procedimientos.
+- Agenda con modalidad y servicio preseleccionados, valores y condiciones en el mensaje de WhatsApp.
+- Preferencias presenciales los viernes de 10:00 a 16:00; fechas y franjas online sujetas a coordinación. No representa cupos en tiempo real.
+- Política confirmada: online se paga el valor completo; presencial y procedimientos se reservan con abono de $10.000. Los pagos y sus datos se coordinan por WhatsApp; la web no cobra ni simula transferencias.
+- Cancelaciones y cambios con 2 días hábiles de anticipación.
+- Ubicación, mapa bajo demanda, redes sociales, correo y acceso a WhatsApp.
+- Tres artículos educativos en modales y dos guías PDF reales de dos páginas.
+- Formulario de contacto y experiencias con consentimiento y validación.
 
-El usuario mostró tres fotografías reales de Camila y una lámina de precios en el chat. Las fotografías inline no llegaron al entorno como archivos descargables, por lo que todavía no se pueden copiar fielmente al proyecto. Se solicitó un ZIP con los originales.
+Los datos se mantienen en `src/content.js`. El material educativo está en `src/education-content.ts` y `public/resources/`. Los procedimientos conservan sus exclusiones: inserciones sin dispositivo, inyectable solo administración sin medicamento, PAP con kit y entrega de resultados.
 
-`src/photos.ts` admite las tres imágenes y sus encuadres. Mientras sus rutas sean `null`, se utiliza un monograma floral con las iniciales de Camila, sin atribuirle otra fotografía. Los selectores de fotos solo aparecen cuando existen imágenes. Al recibir los archivos, copiarlos a `public/images/` y completar sus rutas en `photos.ts`; la exportación incluirá automáticamente los archivos utilizados.
+## Formularios y moderación
 
-## Exportación independiente
+La API (`server/api.mjs`) guarda contactos y experiencias en SQLite. Las experiencias se guardan como pendientes y el listado público devuelve solo las aprobadas. No se han inventado testimonios de pacientes ni se envían correos automáticamente.
+
+La base de datos está en `.data/matronaguia.sqlite`, excluida de Git. Se puede elegir otra ruta con `MATRONAGUIA_DB`. La moderación se realiza desde la terminal del propietario, sin un endpoint administrativo público:
+
+```sh
+node server/moderate.mjs contacts
+node server/moderate.mjs list
+node server/moderate.mjs publish ID
+node server/moderate.mjs reject ID
+```
+
+## Fotografías y marca
+
+El retrato original de Camila, recibido dentro del ZIP, se usa en la presentación y los avatares. Su archivo se conserva sin modificaciones en `public/images/retrato-camila-rojas.jpeg`. Las seis ilustraciones del ZIP se conservan como material visual ilustrativo.
+
+La nueva foto con uniforme negro y el logotipo enviados inline aún necesitan sus archivos descargables para incorporarlos fielmente. Mientras llegan, la cabecera reproduce el nombre y la firma con tipografía, y utiliza la fotografía original ya disponible. Las rutas del retrato y las ilustraciones están en `src/photos.ts`.
+
+## Archivo independiente
 
 ```sh
 npm run export:html
 ```
 
-Genera `exports/Matrona-Guia.html` con el código, fuentes e imágenes utilizadas incluidos. Se puede abrir sin instalar dependencias ni ejecutar un servidor. WhatsApp y las redes sociales requieren internet. El archivo descargable no constituye un alojamiento público.
+Genera `exports/Matrona-Guia.html` con fuentes, videos, imágenes y PDFs incluidos. Se abre sin instalar dependencias ni ejecutar un servidor. En esta versión descargable los formularios preparan mensajes de WhatsApp y lo indican expresamente; no afirman guardar en una base de datos que el archivo no tiene. El almacenamiento SQLite funciona al ejecutar la aplicación con su API.
 
-Instagram: https://www.instagram.com/matronaguia/
-
-TikTok: https://www.tiktok.com/@matronaguia
+Los enlaces de WhatsApp, mapa, correo y redes requieren conexión. La descarga no constituye un alojamiento público de la web.

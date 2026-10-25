@@ -15,12 +15,14 @@ const mimeTypes = {
   ".jpg": "image/jpeg",
   ".jpeg": "image/jpeg",
   ".png": "image/png",
+  ".pdf": "application/pdf",
   ".mp4": "video/mp4",
   ".vtt": "text/vtt",
 };
 const dataUrl = async (path) =>
   `data:${mimeTypes[extname(path)] || "application/octet-stream"};base64,${(await readFile(path)).toString("base64")}`;
 let html = await readFile(resolve(dist, "index.html"), "utf8");
+html = html.replace("<html ", '<html data-standalone="true" ');
 
 for (const match of [
   ...html.matchAll(/<link[^>]+rel="stylesheet"[^>]+href="([^"]+)"[^>]*>/g),
